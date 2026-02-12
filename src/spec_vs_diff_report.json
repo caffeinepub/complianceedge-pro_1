@@ -1,0 +1,55 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-12T12:01:37.514Z",
+  "summary": "REQ-17 and REQ-18 appear implemented via new guide page/route and added “Download Sample” links on the specified module pages. REQ-16 (adding the actual static CSV sample files under a public path) is not evidenced in the diff summary. Several additional auth/permissions/profile-related changes appear in the diff but were not requested by this BuildRequest.",
+  "missing_requirements": [
+    {
+      "id": "REQ-16",
+      "requirement": "Add the provided sample template CSV files as static frontend assets under a public static path (e.g., frontend/public/assets/samples/) so they can be downloaded directly (HTTP 200) with correct headers and at least two example rows.",
+      "reason": "The diff shows module pages linking to /assets/samples/*.csv, but does not show any CSV files added under frontend/public (or any other static/public assets directory). Without the actual files, the links would likely 404 and the acceptance criteria for existence/content/HTTP 200 is not met based on the provided diff summary.",
+      "evidence": [
+        "frontend/src/pages/data-entry/TradeImportPage.tsx",
+        "frontend/src/pages/reconciliation/BankReconciliationPage.tsx",
+        "frontend/src/pages/clients/ClientManagementPage.tsx",
+        "frontend/src/pages/margin/MarginCollateralPage.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Introduced/modified a broader role & permissions system (roles, permissions matrix, permission hook, PermissionGate component) beyond adding sample downloads and a guide.",
+      "reason": "BuildRequest focuses on adding downloadable sample templates and a dashboard-accessible guide. The diff summary lists new/updated permissions infrastructure not required to satisfy REQ-16/17/18.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/auth/roles.ts, frontend/src/auth/permissions.ts, frontend/src/hooks/usePermissions.ts, frontend/src/components/auth/PermissionGate.tsx)"
+      ]
+    },
+    {
+      "description": "Added/modified current-user profile fetching and a first-time profile setup modal flow (useCurrentUser hook, ProfileSetupDialog gating changes in App).",
+      "reason": "Not requested by REQ-16/17/18; appears to be extra authentication/profile UX work unrelated to sample downloads or the guide.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend-file-summaries.txt (mentions frontend/src/hooks/useCurrentUser.ts, frontend/src/components/auth/ProfileSetupDialog.tsx)"
+      ]
+    },
+    {
+      "description": "Added PAN validation utility and client upsert modal validation enhancements.",
+      "reason": "Not requested; outside the scope of adding static sample templates and an in-app guide.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/validation/pan.ts, frontend/src/components/clients/ClientUpsertModal.tsx)"
+      ]
+    }
+  ],
+  "confidence": 0.74,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/pages/HowToUseGuidePage.tsx",
+    "frontend/src/pages/OverviewPage.tsx",
+    "frontend/src/pages/clients/ClientManagementPage.tsx",
+    "frontend/src/pages/data-entry/TradeImportPage.tsx",
+    "frontend/src/pages/margin/MarginCollateralPage.tsx",
+    "frontend/src/pages/reconciliation/BankReconciliationPage.tsx",
+    "project_state.json"
+  ]
+}

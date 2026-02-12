@@ -1,0 +1,78 @@
+{
+  "kind": "build_request",
+  "title": "Add downloadable sample templates for upload modules and publish an in-app “How to use this platform” guide on the dashboard",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-16",
+      "text": "Add the provided sample template files as static frontend assets so they can be downloaded directly by users.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Place these sample files in their respective places so that users can download them if required."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The following files exist under a public static path (e.g., frontend/public/assets/samples/) and are served by the frontend without requiring backend calls: trade-import-sample.csv, bank-reconciliation-sample.csv, client-bulk-upload-sample.csv, margin-snapshot-sample.csv",
+        "Each CSV file content matches the sample formats previously provided (headers + at least two example rows).",
+        "Directly visiting each file URL in the browser downloads/displays the CSV successfully (HTTP 200)."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Expose “Download sample file” links/buttons in each relevant module screen so users can easily download the correct template format from the place where data is uploaded/entered.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Place these sample files in their respective places so that users can download them if required."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Trade Import page (frontend/src/pages/data-entry/TradeImportPage.tsx) includes a clearly labeled download link/button for the Trade Import sample CSV that points to the static asset URL.",
+        "Bank Reconciliation page (frontend/src/pages/reconciliation/BankReconciliationPage.tsx) includes a clearly labeled download link/button for the Bank Reconciliation sample CSV that points to the static asset URL.",
+        "Client Management page (frontend/src/pages/clients/ClientManagementPage.tsx) includes a clearly labeled download link/button for the Client Bulk Upload sample CSV that points to the static asset URL.",
+        "Margin & Collateral page (frontend/src/pages/margin/MarginCollateralPage.tsx) includes a clearly labeled download link/button for the Margin Snapshot sample CSV that points to the static asset URL.",
+        "All download links use English user-facing text and do not require any special permissions beyond being logged in (i.e., visible to authenticated users who can view the page)."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Create a complete, reader-friendly “How to use this platform” guide and make it accessible from the dashboard (Overview) in a prominent, easy-to-read format.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Also on dashboard station the complete How to use this platform guide in a reader freindly format."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new guide view/page exists that presents a structured, reader-friendly “How to use this platform” guide in English with headings and sections suitable for scanning (e.g., Getting Started, Roles & Permissions, Trade Import, Clients, Margin, Reconciliation, Reports, Calendar, Surveillance, Audit Trail, Configuration, Troubleshooting/FAQ).",
+        "The guide is reachable from the dashboard (frontend/src/pages/OverviewPage.tsx) via a clearly labeled card/section and button/link (e.g., “How to use this platform”).",
+        "Navigation to the guide does not break existing routes and works with the current TanStack Router setup (frontend/src/App.tsx).",
+        "The guide content is readable on both desktop and smaller screens (reasonable typography, spacing, and scroll behavior)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose only).",
+    "Keep within the existing single-backend-canister constraint; sample downloads and the guide must be served as frontend static assets/content (no new backend storage required).",
+    "Use English for all user-facing text added by this change."
+  ],
+  "nonGoals": [
+    "Do not implement actual file upload processing, parsing, validation execution, or import workflows beyond adding downloadable templates and guide content.",
+    "Do not add email/WhatsApp delivery or notifications.",
+    "Do not introduce new authentication providers beyond Internet Identity."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

@@ -1,0 +1,5 @@
+date,description,amount,type,reference
+2024-12-01,UPI Collection,45000,credit,TXN001
+2024-12-01,Client Payout,-12000,debit,TXN002
+2024-12-02,NEFT Transfer,150000,credit,TXN003
+2024-12-02,Exchange Settlement,-87500,debit,TXN004

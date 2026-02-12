@@ -1,0 +1,68 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-the-provided-sample-template-files-as-static-frontend-assets-so-they-can-be-downloaded-directly-by-users",
+      "featureTitle": "Add the provided sample template files as static frontend assets so they can be downloaded directly by users.",
+      "files": [],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-expose-download-sample-file-links-buttons-in-each-relevant-module-screen-so-users-can-easily-download-the-correct-template-format-from-the-place-where-data-is-uploaded-entered",
+      "featureTitle": "Expose “Download sample file” links/buttons in each relevant module screen so users can easily download the correct template format from the place where data is uploaded/entered.",
+      "files": [
+        "frontend/src/pages/clients/ClientManagementPage.tsx",
+        "frontend/src/pages/data-entry/TradeImportPage.tsx",
+        "frontend/src/pages/margin/MarginCollateralPage.tsx",
+        "frontend/src/pages/reconciliation/BankReconciliationPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-complete-reader-friendly-how-to-use-this-platform-guide-and-make-it-accessible-from-the-dashboard-overview-in-a-prominent-easy-to-read-format",
+      "featureTitle": "Create a complete, reader-friendly “How to use this platform” guide and make it accessible from the dashboard (Overview) in a prominent, easy-to-read format.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/HowToUseGuidePage.tsx",
+        "frontend/src/pages/OverviewPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

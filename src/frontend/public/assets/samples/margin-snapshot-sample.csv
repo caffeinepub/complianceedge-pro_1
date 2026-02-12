@@ -1,0 +1,5 @@
+client_code,snapshot_id,required_margin,available_margin,shortfall,exchange
+ABC123,1,150000,152500,0,NSE
+XYZ789,1,90000,75000,15000,NSE
+DEF456,1,200000,210000,0,BSE
+GHI012,1,125000,120000,5000,NSE
