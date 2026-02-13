@@ -1,6 +1,7 @@
-import { RouterProvider, createRouter, createRootRoute, createRoute, Outlet } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRootRoute, createRoute, Outlet, NotFoundRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useCurrentUser } from './hooks/useCurrentUser';
+import { useBackendHealthCheck } from './hooks/useBackendHealthCheck';
 import SignInScreen from './components/auth/SignInScreen';
 import ProfileSetupDialog from './components/auth/ProfileSetupDialog';
 import DashboardLayout from './layout/DashboardLayout';
@@ -20,12 +21,16 @@ import ExchangeSettingsPage from './pages/config/ExchangeSettingsPage';
 import IntegrationsPage from './pages/config/IntegrationsPage';
 import UserManagementPage from './components/admin/UserManagementPage';
 import HowToUseGuidePage from './pages/HowToUseGuidePage';
+import NotFoundPage from './pages/NotFoundPage';
+import AppErrorBoundary from './components/common/AppErrorBoundary';
+import BackendHealthBanner from './components/common/BackendHealthBanner';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 
 function RootComponent() {
   const { identity } = useInternetIdentity();
   const { userProfile, isLoading: profileLoading, isFetched } = useCurrentUser();
+  const { isHealthy, isChecking, isError, refetch } = useBackendHealthCheck();
   
   const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
@@ -49,6 +54,9 @@ function RootComponent() {
     <>
       {showProfileSetup && <ProfileSetupDialog />}
       <DashboardLayout>
+        {isError && !isChecking && (
+          <BackendHealthBanner onRetry={() => refetch()} isRetrying={isChecking} />
+        )}
         <Outlet />
       </DashboardLayout>
     </>
@@ -155,6 +163,11 @@ const userManagementRoute = createRoute({
   component: UserManagementPage,
 });
 
+const notFoundRoute = new NotFoundRoute({
+  getParentRoute: () => rootRoute,
+  component: NotFoundPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   howToUseRoute,
@@ -174,7 +187,18 @@ const routeTree = rootRoute.addChildren([
   userManagementRoute,
 ]);
 
-const router = createRouter({ routeTree });
+const router = createRouter({ 
+  routeTree,
+  notFoundRoute,
+  defaultErrorComponent: ({ error }) => (
+    <div className="flex min-h-[60vh] items-center justify-center p-4">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2">Error</h2>
+        <p className="text-muted-foreground">{error.message}</p>
+      </div>
+    </div>
+  ),
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
@@ -184,9 +208,11 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <RouterProvider router={router} />
-      <Toaster />
-    </ThemeProvider>
+    <AppErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <RouterProvider router={router} />
+        <Toaster />
+      </ThemeProvider>
+    </AppErrorBoundary>
   );
 }

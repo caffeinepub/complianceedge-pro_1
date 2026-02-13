@@ -166,6 +166,7 @@ export interface _SERVICE {
     bigint
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'backendHealthCheck' : ActorMethod<[], boolean>,
   'bulkUploadClients' : ActorMethod<[Array<BulkClient>], Array<ClientId>>,
   'bulkUploadCollateral' : ActorMethod<[Array<CollateralRecord>], undefined>,
   'bulkUploadMarginSnapshots' : ActorMethod<[Array<MarginSnapshot>], undefined>,
@@ -206,6 +207,7 @@ export interface _SERVICE {
   'getTradesByClientCode' : ActorMethod<[string], Array<Trade>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'importTrades' : ActorMethod<[Array<Trade>], undefined>,
+  'isAdmin' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeActiveClient' : ActorMethod<[ClientId], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

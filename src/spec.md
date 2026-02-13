@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Restore predictable visibility and behavior of the margin upload area on the Margin & Collateral page for users without upload permissions, and fix file-picker issues caused by duplicate DOM ids.
+**Goal:** Ensure the Internet Identity user whose saved profile email matches sanjeev.vohra@gmail.com is always treated as an application administrator.
 
 **Planned changes:**
-- Update the Margin Snapshots tab to always render the upload card/section container, even when the user lacks the `manage_margin` capability.
-- When `manage_margin` is missing, show an in-place English message indicating the user does not have permission to upload margin/collateral data and must contact an admin; ensure upload controls are disabled or not actionable.
-- Remove DOM id collisions in `BulkUploadSection` by generating a unique file input id per instance so multiple sections on the same page work independently (e.g., Margin Snapshots and Pledged Securities).
+- Add a backend “bootstrap admin” rule in the existing backend actor so authorization checks using `AccessControl.isAdmin(...)` succeed for the matching user.
+- Enforce that when a profile email matches sanjeev.vohra@gmail.com (case-insensitive, trimmed), the stored `UserProfile.extendedRole` is set to `"Super Admin"` (including correcting existing stored profiles).
+- Ensure frontend admin-gated capabilities (e.g., `manage_users`, `manage_config`) become available for that user after refresh/refetch by relying on the enforced `"Super Admin"` role.
 
-**User-visible outcome:** Users who can view Margin & Collateral but cannot manage margin will still see the upload area with a clear permission message, and the “Choose File” control will reliably open the correct file picker in both Margin Snapshots and Pledged Securities.
+**User-visible outcome:** When signed in as the user whose profile email is sanjeev.vohra@gmail.com, they have admin access throughout the app (including admin-gated pages like User Management) and their role shows/enables “Super Admin” capabilities.

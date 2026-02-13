@@ -1,42 +1,32 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Margin & Collateral upload visibility + BulkUploadSection id collisions",
+  "title": "Frontend support for bootstrap admin role visibility and capability gating",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Show the margin upload card area to users without manage_margin, with a clear in-place permission message and non-actionable controls.",
+      "summary": "Ensure the bootstrap admin user (email sanjeev.vohra@gmail.com) reliably sees Super Admin capabilities in the UI after profile save, refresh, or manual refetch, enabling PermissionGate-gated admin modules.",
       "acceptanceCriteria": [
-        "When signed in as a role without \"manage_margin\" (e.g., Dealer), the Margin Snapshots tab still displays an upload card area instead of rendering nothing.",
-        "The upload controls (Choose File / Import) are disabled or not actionable for users lacking \"manage_margin\".",
-        "A visible English message is shown (in the page content, not only via toast) indicating the user does not have permission to upload margin/collateral data."
+        "When signed in and the user profile email is exactly sanjeev.vohra@gmail.com (ignoring leading/trailing spaces and case), backend checks that depend on `AccessControl.isAdmin(accessControlState, caller)` succeed for that user.",
+        "After saving a profile with email sanjeev.vohra@gmail.com, a subsequent `getCallerUserProfile()` returns a profile whose `extendedRole` is \"Super Admin\" (even if the user attempted to save a different role).",
+        "If a profile for the principal already exists in state with email sanjeev.vohra@gmail.com, the backend still enforces admin privileges and corrects `extendedRole` to \"Super Admin\" without requiring manual intervention.",
+        "In the frontend, the sanjeev.vohra@gmail.com user can access UI areas gated by `PermissionGate capability=\"manage_users\"` (e.g., User Management page) and modules that require admin capabilities, after a refresh or refetch."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/margin/MarginCollateralPage.tsx",
+          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
           "operation": "modify",
-          "description": "Remove the current PermissionGate wrapper that hides the upload area entirely. Instead, use the authorization component’s frontend capability checks (usePermissions / manage_margin) to always render the BulkUploadSection card, but pass disabled=true when the user lacks manage_margin. Render an in-place, on-page English message (e.g., an alert/banner above the upload controls) explaining they do not have permission to upload margin/collateral data and must contact an admin to enable uploads. Verify the component's usage instructions before implementing."
+          "description": "After saving the caller profile, explicitly refetch/refresh the current user profile query so any backend-enforced override to extendedRole (e.g., forcing \"Super Admin\" for the bootstrap admin email) is reflected immediately and the dialog closes without requiring a full page reload. Keep user-facing text in English. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
+          "path": "frontend/src/layout/DashboardLayout.tsx",
           "operation": "modify",
-          "description": "Harden the disabled state so users lacking manage_margin cannot accidentally trigger file selection or import via label/input interactions. Ensure disabled=true makes Choose File and Import non-actionable (including preventing the label from opening the hidden file input). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Ensure each BulkUploadSection instance uses a unique file input id and reliably resets/targets its own file picker.",
-      "acceptanceCriteria": [
-        "Each BulkUploadSection instance uses a unique file input id (not a hard-coded shared id).",
-        "Clicking \"Choose File\" in the Margin Snapshots tab opens the file picker and selecting a file updates the UI with the selected filename.",
-        "Clicking \"Choose File\" in the Pledged Securities tab opens the file picker and selecting a file updates the UI with the selected filename."
-      ],
-      "file_operations": [
+          "description": "Add a user-menu action to refetch or invalidate the current user profile query (and thus recompute capabilities/visible modules) so the bootstrap admin can trigger a manual refresh to pick up server-corrected \"Super Admin\" role and unlock PermissionGate-gated areas like User Management. Use the existing authorization capability system (e.g., PermissionGate + capability mapping) and do not modify any files under the forbidden hooks/UI paths. Verify the component's usage instructions before implementing."
+        },
         {
-          "path": "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
+          "path": "frontend/src/hooks/usePermissions.ts",
           "operation": "modify",
-          "description": "Replace the hard-coded file input id ('bulk-upload-file-input') with a per-instance unique id (e.g., via React useId or an instance-stable generated id) and update the label htmlFor accordingly. Remove document.getElementById usage for reset; instead, use a local ref to the input so each instance resets its own input reliably when import completes. Verify the component's usage instructions before implementing."
+          "description": "Ensure permission derivation updates promptly when the current user profile query changes (refetch/invalidate), so role changes to \"Super Admin\" immediately enable capabilities such as manage_users/manage_config throughout the UI. Keep logic composed around existing role normalization and capability mapping. Verify the component's usage instructions before implementing."
         }
       ]
     }

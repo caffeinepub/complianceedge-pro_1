@@ -179,6 +179,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'backendHealthCheck' : IDL.Func([], [IDL.Bool], ['query']),
   'bulkUploadClients' : IDL.Func(
       [IDL.Vec(BulkClient)],
       [IDL.Vec(ClientId)],
@@ -246,6 +247,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
+  'isAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'removeActiveClient' : IDL.Func([ClientId], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
@@ -431,6 +433,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'backendHealthCheck' : IDL.Func([], [IDL.Bool], ['query']),
     'bulkUploadClients' : IDL.Func(
         [IDL.Vec(BulkClient)],
         [IDL.Vec(ClientId)],
@@ -514,6 +517,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
+    'isAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'removeActiveClient' : IDL.Func([ClientId], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),

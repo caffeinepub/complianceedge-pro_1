@@ -218,6 +218,21 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
+  // Bootstrap admin check: user with email "sanjeev.vohra@gmail.com" is always admin
+  func isBootstrapAdmin(caller : Principal) : Bool {
+    switch (userProfiles.get(caller)) {
+      case (?profile) {
+        profile.email == "sanjeev.vohra@gmail.com";
+      };
+      case (null) { false };
+    };
+  };
+
+  // Enhanced admin check that includes bootstrap admin
+  func isAdminUser(caller : Principal) : Bool {
+    AccessControl.isAdmin(accessControlState, caller) or isBootstrapAdmin(caller);
+  };
+
   // Helper function to check if user has read-only restriction (Dealer role)
   func isReadOnlyUser(caller : Principal) : Bool {
     switch (userProfiles.get(caller)) {
@@ -228,7 +243,7 @@ actor {
 
   // Helper function to check if user is compliance/admin
   func isComplianceOrAdmin(caller : Principal) : Bool {
-    if (AccessControl.isAdmin(accessControlState, caller)) {
+    if (isAdminUser(caller)) {
       return true;
     };
     switch (userProfiles.get(caller)) {
@@ -241,7 +256,7 @@ actor {
 
   // Helper function to check if user can manage financial data
   func canManageFinancialData(caller : Principal) : Bool {
-    if (AccessControl.isAdmin(accessControlState, caller)) {
+    if (isAdminUser(caller)) {
       return true;
     };
     switch (userProfiles.get(caller)) {
@@ -254,7 +269,7 @@ actor {
 
   // Helper function to check if user can view client data
   func canViewClientData(caller : Principal) : Bool {
-    if (AccessControl.isAdmin(accessControlState, caller)) {
+    if (isAdminUser(caller)) {
       return true;
     };
     switch (userProfiles.get(caller)) {
@@ -276,7 +291,18 @@ actor {
     auditEntries.add(entry);
   };
 
+  // Health check endpoint for backend connectivity
+  public query ({ caller }) func backendHealthCheck() : async Bool {
+    true;
+  };
+
   // User Profile Management
+
+  // Check if caller is admin (includes bootstrap admin)
+  public query ({ caller }) func isAdmin() : async Bool {
+    isAdminUser(caller);
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -288,7 +314,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not isAdminUser(caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
@@ -298,7 +324,18 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
-    userProfiles.add(caller, profile);
+
+    // Bootstrap admin: automatically set extendedRole to "Super Admin" for bootstrap admin email
+    let finalProfile = if (profile.email == "sanjeev.vohra@gmail.com") {
+      {
+        profile with
+        extendedRole = "Super Admin";
+      };
+    } else {
+      profile;
+    };
+
+    userProfiles.add(caller, finalProfile);
     addAuditEntry(caller, "UPDATE_PROFILE", "User updated their profile");
   };
 
@@ -649,7 +686,7 @@ actor {
         // Check if caller is creator, authorized user, or admin
         let isAuthorized = thread.creator == caller or
           thread.authorizedUsers.find(func(user) { user == caller }) != null or
-          AccessControl.isAdmin(accessControlState, caller);
+          isAdminUser(caller);
         if (isAuthorized) {
           ?thread;
         } else {
@@ -882,7 +919,7 @@ actor {
 
     var reports : [GeneratedReport] = [];
     for ((id, report) in generatedReports.entries()) {
-      if (report.generatedBy == caller or AccessControl.isAdmin(accessControlState, caller) or isComplianceOrAdmin(caller)) {
+      if (report.generatedBy == caller or isAdminUser(caller) or isComplianceOrAdmin(caller)) {
         reports := reports.concat([report]);
       };
     };

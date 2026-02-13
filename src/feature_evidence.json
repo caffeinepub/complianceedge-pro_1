@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-on-the-margin-collateral-page-ensure-users-who-can-view-the-page-but-lack-the-manage-margin-capability-can-still-see-the-margin-upload-section-area-with-a-clear-in-place-message-explaining-they-do-not-have-permission-to-upload-and-must-contact-an-admin-to-enable-uploads",
-      "featureTitle": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
+      "featureId": "feature-implement-a-backend-bootstrap-admin-rule-so-that-the-internet-identity-user-whose-saved-profile-email-equals-sanjeev-vohra-gmail-com-is-always-treated-as-an-application-administrator-this-must-a-grant-the-caller-admin-privileges-in-backend-authorization-checks-that-rely-on-accesscontrol-isadmin-and-b-ensure-the-stored-userprofile-extendedrole-for-that-principal-is-set-to-super-admin-so-the-frontend-capability-system-e-g-manage-users-manage-config-is-enabled-for-that-user",
+      "featureTitle": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
       "files": [
-        "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
-        "frontend/src/pages/margin/MarginCollateralPage.tsx"
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
+        "frontend/src/hooks/usePermissions.ts",
+        "frontend/src/layout/DashboardLayout.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,26 +20,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-remove-dom-id-collisions-in-bulkuploadsection-so-that-multiple-instances-on-the-same-page-margin-snapshots-and-pledged-securities-do-not-share-the-same-file-input-id-ensuring-the-choose-file-control-reliably-opens-the-correct-file-picker",
-      "featureTitle": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
-      "files": [
-        "frontend/src/components/bulk-upload/BulkUploadSection.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

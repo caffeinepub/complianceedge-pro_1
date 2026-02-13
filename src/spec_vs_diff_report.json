@@ -1,32 +1,48 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T07:28:49.126Z",
-  "summary": "Diff shows initial steps toward fixing permission-based visibility and file-input ID collisions (e.g., adding `useId()` in `BulkUploadSection` and adding permission checks in `MarginCollateralPage`), but the provided truncated snippets do not contain enough rendered JSX evidence to confirm that the required in-page permission message is shown or that the generated unique ID is actually applied to the `<input type=\"file\">` and its trigger/label, so both requirements cannot be verified as completed from the diff summary alone.",
+  "generatedAt": "2026-02-13T08:28:47.450Z",
+  "summary": "Frontend changes add explicit profile refetch after saving, a permissions hook, and a dashboard manual refresh action. The backend diff snippet is truncated and does not show any implemented “bootstrap admin” logic in AccessControl checks or enforcement of `extendedRole = \"Super Admin\"` for the specified email, so REQ-1 cannot be confirmed as implemented from the provided evidence.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
-      "reason": "Although `MarginCollateralPage.tsx` now computes `canManageMargin = can('manage_margin')` and imports `Alert`/`AlertCircle`, the truncated diff does not show the actual tab content rendering that (a) keeps the upload card visible when lacking permission and (b) displays a visible in-page English message instructing the user to contact an admin, nor does it clearly show the upload controls being disabled based on permissions.",
+      "requirement": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" (trimmed + case-insensitive) is always treated as an administrator via `AccessControl.isAdmin(...)`, and ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" (including correcting existing stored profiles).",
+      "reason": "The provided `backend/main.mo` diff content is truncated and shows only type/module definitions; it does not include evidence of (a) overriding/augmenting `AccessControl.isAdmin(...)` behavior based on email, (b) normalizing email (trim + case-fold), or (c) enforcing/correcting `UserProfile.extendedRole` to \"Super Admin\" on save and/or on read for existing profiles.",
       "evidence": [
-        "frontend/src/pages/margin/MarginCollateralPage.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
-      "reason": "`BulkUploadSection.tsx` introduces `const fileInputId = useId();`, but the truncated diff does not show an `<input id={fileInputId}>` (or equivalent) nor the corresponding association from the \"Choose File\" control to that specific input. Without seeing the usage, unique IDs and correct picker behavior cannot be confirmed.",
-      "evidence": [
-        "frontend/src/components/bulk-upload/BulkUploadSection.tsx (truncated)"
+        "backend/main.mo (truncated snippet shows imports + type definitions only; no bootstrap-admin logic visible)"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.46,
+  "hallucinated_features": [
+    {
+      "description": "Added/expanded role selection UI in profile setup, including allowing the user to choose \"Super Admin\" and other roles at profile creation time.",
+      "reason": "REQ-1 focuses on backend-enforced admin bootstrapping for a single email and does not request a user-facing role picker during profile setup.",
+      "evidence": [
+        "frontend/src/components/auth/ProfileSetupDialog.tsx (adds `extendedRole` state and a Role <Select> with items including \"Super Admin\")"
+      ]
+    },
+    {
+      "description": "Added a manual 'refresh profile' action with toast notifications in the dashboard layout.",
+      "reason": "REQ-1 only requires that the user can access admin-gated UI after a refresh/refetch; it does not require introducing a new explicit refresh control in the dashboard.",
+      "evidence": [
+        "frontend/src/layout/DashboardLayout.tsx (adds `handleRefreshProfile`, `isRefreshing`, and success/error toasts)"
+      ]
+    },
+    {
+      "description": "Introduced/modified a `usePermissions` hook that derives capabilities and visible modules from `userProfile.extendedRole`.",
+      "reason": "REQ-1 does not ask for new permissions plumbing; it only requires the backend to set `extendedRole` to enable existing frontend capability gating.",
+      "evidence": [
+        "frontend/src/hooks/usePermissions.ts (computes role via `getBusinessRole`, `hasCapability`, `getVisibleModules`)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
-    "frontend/src/pages/margin/MarginCollateralPage.tsx",
+    "frontend/src/components/auth/ProfileSetupDialog.tsx",
+    "frontend/src/hooks/usePermissions.ts",
+    "frontend/src/layout/DashboardLayout.tsx",
     "project_state.json"
   ]
 }

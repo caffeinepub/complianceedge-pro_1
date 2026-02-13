@@ -4,29 +4,28 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Margin upload button not visible to user (Version 10 / production deployment)."
+    "Deployer/creator account currently lacks admin permissions; admin role assignment not configured as expected."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-on-the-margin-collateral-page-ensure-users-who-can-view-the-page-but-lack-the-manage-margin-capability-can-still-see-the-margin-upload-section-area-with-a-clear-in-place-message-explaining-they-do-not-have-permission-to-upload-and-must-contact-an-admin-to-enable-uploads",
-      "title": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
+      "id": "feature-implement-a-backend-bootstrap-admin-rule-so-that-the-internet-identity-user-whose-saved-profile-email-equals-sanjeev-vohra-gmail-com-is-always-treated-as-an-application-administrator-this-must-a-grant-the-caller-admin-privileges-in-backend-authorization-checks-that-rely-on-accesscontrol-isadmin-and-b-ensure-the-stored-userprofile-extendedrole-for-that-principal-is-set-to-super-admin-so-the-frontend-capability-system-e-g-manage-users-manage-config-is-enabled-for-that-user",
+      "title": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-remove-dom-id-collisions-in-bulkuploadsection-so-that-multiple-instances-on-the-same-page-margin-snapshots-and-pledged-securities-do-not-share-the-same-file-input-id-ensuring-the-choose-file-control-reliably-opens-the-correct-file-picker",
-      "title": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix Margin upload button visibility on Margin & Collateral page",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Assign/admin-enable account sanjeev.vohra@gmail.com as an administrator for the website",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Grant application admin rights to sanjeev.vohra@gmail.com",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

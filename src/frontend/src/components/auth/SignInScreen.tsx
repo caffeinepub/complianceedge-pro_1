@@ -3,9 +3,11 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+import { useState } from 'react';
 
 export default function SignInScreen() {
   const { login, loginStatus, loginError } = useInternetIdentity();
+  const [logoError, setLogoError] = useState(false);
 
   const isLoggingIn = loginStatus === 'logging-in';
 
@@ -14,11 +16,16 @@ export default function SignInScreen() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <img 
-              src="/assets/generated/complianceedge-pro-logo.dim_512x128.png" 
-              alt="ComplianceEdge Pro" 
-              className="h-12"
-            />
+            {!logoError ? (
+              <img 
+                src="/assets/generated/complianceedge-pro-logo.dim_512x128.png" 
+                alt="ComplianceEdge Pro" 
+                className="h-12"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="text-2xl font-bold">ComplianceEdge Pro</div>
+            )}
           </div>
           <CardTitle className="text-2xl">Welcome to ComplianceEdge Pro</CardTitle>
           <CardDescription>

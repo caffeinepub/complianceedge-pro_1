@@ -234,6 +234,7 @@ export interface backendInterface {
     addMarginSnapshot(available: number, used: number, timestamp: Timestamp): Promise<void>;
     addRegulatoryDeadline(title: string, description: string, dueDate: Timestamp, category: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    backendHealthCheck(): Promise<boolean>;
     bulkUploadClients(clientsInput: Array<BulkClient>): Promise<Array<ClientId>>;
     bulkUploadCollateral(collateralInput: Array<CollateralRecord>): Promise<void>;
     bulkUploadMarginSnapshots(snapshots: Array<MarginSnapshot>): Promise<void>;
@@ -271,6 +272,7 @@ export interface backendInterface {
     getTradesByClientCode(client_code: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importTrades(trades: Array<Trade>): Promise<void>;
+    isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     removeActiveClient(clientId: ClientId): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
@@ -445,6 +447,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n9(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async backendHealthCheck(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.backendHealthCheck();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.backendHealthCheck();
             return result;
         }
     }
@@ -872,6 +888,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.importTrades(arg0);
+            return result;
+        }
+    }
+    async isAdmin(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isAdmin();
             return result;
         }
     }

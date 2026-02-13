@@ -1,55 +1,50 @@
 {
   "kind": "build_request",
-  "title": "Fix Margin upload button visibility on Margin & Collateral page",
-  "priority": "normal",
+  "title": "Grant application admin rights to sanjeev.vohra@gmail.com",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
-      "target": "frontend",
+      "text": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Cant see margin upload button"
+          "Change code such that admin rights are with sanjeev.vohra@gmail.com user"
         ]
       },
       "acceptanceCriteria": [
-        "When signed in as a role without \"manage_margin\" (e.g., Dealer), the Margin Snapshots tab still displays an upload card area instead of rendering nothing.",
-        "The upload controls (Choose File / Import) are disabled or not actionable for users lacking \"manage_margin\".",
-        "A visible English message is shown (in the page content, not only via toast) indicating the user does not have permission to upload margin/collateral data."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Cant see margin upload button"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each BulkUploadSection instance uses a unique file input id (not a hard-coded shared id).",
-        "Clicking \"Choose File\" in the Margin Snapshots tab opens the file picker and selecting a file updates the UI with the selected filename.",
-        "Clicking \"Choose File\" in the Pledged Securities tab opens the file picker and selecting a file updates the UI with the selected filename."
+        "When signed in and the user profile email is exactly sanjeev.vohra@gmail.com (ignoring leading/trailing spaces and case), backend checks that depend on `AccessControl.isAdmin(accessControlState, caller)` succeed for that user.",
+        "After saving a profile with email sanjeev.vohra@gmail.com, a subsequent `getCallerUserProfile()` returns a profile whose `extendedRole` is \"Super Admin\" (even if the user attempted to save a different role).",
+        "If a profile for the principal already exists in state with email sanjeev.vohra@gmail.com, the backend still enforces admin privileges and corrects `extendedRole` to \"Super Admin\" without requiring manual intervention.",
+        "In the frontend, the sanjeev.vohra@gmail.com user can access UI areas gated by `PermissionGate capability=\"manage_users\"` (e.g., User Management page) and modules that require admin capabilities, after a refresh or refetch."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only).",
-    "Do not edit immutable hook files listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Keep all Motoko logic within the single actor in backend/main.mo (no additional backend services).",
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (compose instead).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Changing role/capability assignments for business roles (e.g., granting manage_margin to additional roles).",
-    "Adding new backend endpoints or altering backend schemas."
+    "Building a full admin UI for promoting/demoting arbitrary users.",
+    "Adding third-party authentication providers beyond Internet Identity.",
+    "Introducing an external database or additional backend canisters."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

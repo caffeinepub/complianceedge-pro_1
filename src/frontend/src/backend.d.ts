@@ -141,6 +141,7 @@ export interface backendInterface {
     addMarginSnapshot(available: number, used: number, timestamp: Timestamp): Promise<void>;
     addRegulatoryDeadline(title: string, description: string, dueDate: Timestamp, category: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    backendHealthCheck(): Promise<boolean>;
     bulkUploadClients(clientsInput: Array<BulkClient>): Promise<Array<ClientId>>;
     bulkUploadCollateral(collateralInput: Array<CollateralRecord>): Promise<void>;
     bulkUploadMarginSnapshots(snapshots: Array<MarginSnapshot>): Promise<void>;
@@ -178,6 +179,7 @@ export interface backendInterface {
     getTradesByClientCode(client_code: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importTrades(trades: Array<Trade>): Promise<void>;
+    isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     removeActiveClient(clientId: ClientId): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

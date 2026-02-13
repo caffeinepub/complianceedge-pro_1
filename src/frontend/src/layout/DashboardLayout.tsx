@@ -8,21 +8,46 @@ import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Badge } from '../components/ui/badge';
-import { LayoutDashboard, FileText, Users, TrendingUp, DollarSign, FileCheck, Calendar, Shield, FileSearch, Settings, ChevronRight, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, TrendingUp, DollarSign, FileCheck, Calendar, Shield, FileSearch, Settings, LogOut, RefreshCw } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { clear } = useInternetIdentity();
-  const { userProfile } = useCurrentUser();
-  const { can, visibleModules, role } = usePermissions();
+  const { userProfile, refetch } = useCurrentUser();
+  const { visibleModules, role } = usePermissions();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
+  const [appIdentifier, setAppIdentifier] = useState('unknown-app');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    // Safely compute app identifier when window is available
+    if (typeof window !== 'undefined') {
+      setAppIdentifier(window.location.hostname || 'unknown-app');
+    }
+  }, []);
+
   const handleLogout = async () => {
     await clear();
     queryClient.clear();
+  };
+
+  const handleRefreshProfile = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast.success('Profile refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh profile');
+      console.error(error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const navItems = [
@@ -57,6 +82,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               src="/assets/generated/complianceedge-pro-icon.dim_256x256.png" 
               alt="ComplianceEdge Pro" 
               className="h-8 w-8"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <span className="font-semibold text-sm">ComplianceEdge Pro</span>
           </Link>
@@ -94,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="text-xs text-muted-foreground">
             Built with <span className="text-red-500">♥</span> using{' '}
             <a 
-              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(appIdentifier)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-foreground"
@@ -132,6 +160,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleRefreshProfile} disabled={isRefreshing}>
+                  <RefreshCw className={cn("mr-2 h-4 w-4", isRefreshing && "animate-spin")} />
+                  Refresh Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout

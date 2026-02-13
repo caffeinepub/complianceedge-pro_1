@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useSaveCallerUserProfile } from '../../hooks/useQueries';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { toast } from 'sonner';
 import type { BusinessRole } from '../../auth/roles';
 
@@ -15,6 +16,7 @@ export default function ProfileSetupDialog() {
   const [extendedRole, setExtendedRole] = useState<BusinessRole>('Compliance Officer');
   
   const saveProfile = useSaveCallerUserProfile();
+  const { refetch } = useCurrentUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,10 @@ export default function ProfileSetupDialog() {
         department,
         extendedRole,
       });
+      
+      // Explicitly refetch to pick up any backend-enforced role changes
+      await refetch();
+      
       toast.success('Profile created successfully');
     } catch (error) {
       toast.error('Failed to create profile');
