@@ -23,7 +23,22 @@ export interface BehaviorPattern {
   'analyzedBy' : Principal,
   'patternDescription' : string,
 }
-export type ClientID = bigint;
+export interface BulkClient {
+  'pan' : string,
+  'documents' : Array<DocumentKey>,
+  'name' : string,
+  'address' : string,
+}
+export type ClientId = bigint;
+export interface CollateralRecord {
+  'clientId' : ClientId,
+  'marketValue' : number,
+  'recordedAt' : Timestamp,
+  'recordedBy' : Principal,
+  'pledgeDate' : Timestamp,
+  'quantity' : bigint,
+  'securityName' : string,
+}
 export type DocumentKey = string;
 export interface DocumentMeta {
   'file' : ExternalBlob,
@@ -32,6 +47,14 @@ export interface DocumentMeta {
   'uploadedBy' : Principal,
 }
 export type ExternalBlob = Uint8Array;
+export interface GeneratedReport {
+  'id' : bigint,
+  'status' : string,
+  'templateId' : string,
+  'generatedAt' : Timestamp,
+  'generatedBy' : Principal,
+  'parameters' : string,
+}
 export interface KycDocument {
   'pan' : string,
   'documents' : Array<DocumentKey>,
@@ -47,6 +70,36 @@ export interface MarginSnapshot {
   'marginAvailable' : number,
   'recordedBy' : Principal,
   'marginUsed' : number,
+}
+export interface ReconciliationRun {
+  'status' : string,
+  'uploadDate' : Timestamp,
+  'runId' : bigint,
+  'rowCount' : bigint,
+  'uploadedBy' : Principal,
+}
+export interface RegulatoryDeadline {
+  'id' : bigint,
+  'status' : string,
+  'title' : string,
+  'createdAt' : Timestamp,
+  'createdBy' : Principal,
+  'dueDate' : Timestamp,
+  'description' : string,
+  'category' : string,
+}
+export interface ReportTemplate {
+  'id' : string,
+  'name' : string,
+  'description' : string,
+  'category' : string,
+}
+export interface StatementRow {
+  'balance' : number,
+  'date' : Timestamp,
+  'description' : string,
+  'recordedBy' : Principal,
+  'amount' : number,
 }
 export interface Thread {
   'id' : bigint,
@@ -105,27 +158,59 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addDocument' : ActorMethod<[ClientID, string, ExternalBlob], undefined>,
+  'addActiveClient' : ActorMethod<[ClientId], undefined>,
+  'addDocument' : ActorMethod<[ClientId, string, ExternalBlob], undefined>,
   'addMarginSnapshot' : ActorMethod<[number, number, Timestamp], undefined>,
+  'addRegulatoryDeadline' : ActorMethod<
+    [string, string, Timestamp, string],
+    bigint
+  >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'bulkUploadClients' : ActorMethod<[Array<BulkClient>], Array<ClientId>>,
+  'bulkUploadCollateral' : ActorMethod<[Array<CollateralRecord>], undefined>,
+  'bulkUploadMarginSnapshots' : ActorMethod<[Array<MarginSnapshot>], undefined>,
+  'bulkUploadStatementRows' : ActorMethod<[Array<StatementRow>], bigint>,
   'createBehaviorPattern' : ActorMethod<[Principal, string], bigint>,
-  'createClient' : ActorMethod<[string, string, string], ClientID>,
+  'createClient' : ActorMethod<[string, string, string], ClientId>,
   'createThread' : ActorMethod<[string, Array<Principal>], bigint>,
+  'generateReport' : ActorMethod<[string, string], bigint>,
+  'getActiveClients' : ActorMethod<[], Array<ClientId>>,
+  'getAllClients' : ActorMethod<[], Array<KycDocument>>,
   'getAllTrades' : ActorMethod<[], Array<Trade>>,
   'getAuditEntries' : ActorMethod<[], Array<AuditEntry>>,
   'getBehaviorPattern' : ActorMethod<[bigint], [] | [BehaviorPattern]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getClient' : ActorMethod<[ClientID], [] | [KycDocument]>,
+  'getClient' : ActorMethod<[ClientId], [] | [KycDocument]>,
+  'getCollateralRecords' : ActorMethod<[], Array<CollateralRecord>>,
+  'getDashboardMetrics' : ActorMethod<
+    [],
+    {
+      'reconciliationRunCount' : bigint,
+      'totalTrades' : bigint,
+      'latestMarginAvailable' : number,
+      'pendingDeadlines' : bigint,
+      'totalClients' : bigint,
+      'latestMarginUsed' : number,
+    }
+  >,
   'getDocument' : ActorMethod<[DocumentKey], [] | [DocumentMeta]>,
+  'getGeneratedReports' : ActorMethod<[], Array<GeneratedReport>>,
   'getMarginSnapshots' : ActorMethod<[], Array<MarginSnapshot>>,
+  'getReconciliationRun' : ActorMethod<[bigint], [] | [ReconciliationRun]>,
+  'getReconciliationRuns' : ActorMethod<[], Array<ReconciliationRun>>,
+  'getRegulatoryDeadlines' : ActorMethod<[], Array<RegulatoryDeadline>>,
+  'getReportTemplates' : ActorMethod<[], Array<ReportTemplate>>,
+  'getStatementRows' : ActorMethod<[], Array<StatementRow>>,
   'getThread' : ActorMethod<[bigint], [] | [Thread]>,
   'getTradesByClientCode' : ActorMethod<[string], Array<Trade>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'importTrades' : ActorMethod<[Array<Trade>], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'removeActiveClient' : ActorMethod<[ClientId], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'updateClient' : ActorMethod<[ClientID, string, string, string], undefined>,
+  'updateClient' : ActorMethod<[ClientId, string, string, string], undefined>,
+  'updateRegulatoryDeadlineStatus' : ActorMethod<[bigint, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

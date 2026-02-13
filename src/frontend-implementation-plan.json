@@ -1,74 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Trade Import: Fix file picker, implement import parsing/validation, and show persisted import history",
+  "title": "Fix Margin & Collateral upload visibility + BulkUploadSection id collisions",
   "requirements": [
     {
-      "id": "REQ-5",
-      "summary": "Make the Trade Import > Upload File 'Browse Files' control open the native file picker and reflect the selected filename.",
+      "id": "REQ-1",
+      "summary": "Show the margin upload card area to users without manage_margin, with a clear in-place permission message and non-actionable controls.",
       "acceptanceCriteria": [
-        "On Trade Import page (Upload File tab), clicking \"Browse Files\" opens the OS file picker.",
-        "Selecting a file displays the selected filename in the UI (or otherwise confirms selection).",
-        "The control works in Chrome-based browsers and Safari without requiring drag-and-drop."
+        "When signed in as a role without \"manage_margin\" (e.g., Dealer), the Margin Snapshots tab still displays an upload card area instead of rendering nothing.",
+        "The upload controls (Choose File / Import) are disabled or not actionable for users lacking \"manage_margin\".",
+        "A visible English message is shown (in the page content, not only via toast) indicating the user does not have permission to upload margin/collateral data."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
+          "path": "frontend/src/pages/margin/MarginCollateralPage.tsx",
           "operation": "modify",
-          "description": "Replace the non-functional Browse Files button with a native <input type=\"file\"> (hidden) wired via ref/click so it reliably opens the OS picker in Chrome/Safari; show selected filename and basic selected-state UI. Use existing shadcn/ui Button for the trigger (do not edit files under frontend/src/components/ui; compose them instead). Verify the component's usage instructions before implementing."
+          "description": "Remove the current PermissionGate wrapper that hides the upload area entirely. Instead, use the authorization component’s frontend capability checks (usePermissions / manage_margin) to always render the BulkUploadSection card, but pass disabled=true when the user lacks manage_margin. Render an in-place, on-page English message (e.g., an alert/banner above the upload controls) explaining they do not have permission to upload margin/collateral data and must contact an admin to enable uploads. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
+          "operation": "modify",
+          "description": "Harden the disabled state so users lacking manage_margin cannot accidentally trigger file selection or import via label/input interactions. Ensure disabled=true makes Choose File and Import non-actionable (including preventing the label from opening the hidden file input). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-6",
-      "summary": "Implement frontend trade file import workflow: parse CSV/XLSX/XLS, validate required columns and row values, and submit valid trades to backend for persistence.",
+      "id": "REQ-2",
+      "summary": "Ensure each BulkUploadSection instance uses a unique file input id and reliably resets/targets its own file picker.",
       "acceptanceCriteria": [
-        "CSV files with the required columns are parsed into trade rows on the frontend.",
-        "If any required column is missing, show a clear English error message and do not submit to the backend.",
-        "If any row has invalid/missing required values, show an English error summary (including row numbers) and do not submit invalid rows.",
-        "On successful import, the UI shows an English success confirmation including number of trades imported."
+        "Each BulkUploadSection instance uses a unique file input id (not a hard-coded shared id).",
+        "Clicking \"Choose File\" in the Margin Snapshots tab opens the file picker and selecting a file updates the UI with the selected filename.",
+        "Clicking \"Choose File\" in the Pledged Securities tab opens the file picker and selecting a file updates the UI with the selected filename."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
-          "operation": "create",
-          "description": "Add a frontend utility to read the selected file via FileReader and parse it into normalized row objects; support CSV and Excel formats (XLSX/XLS) using a safe parsing approach appropriate for the existing toolchain (e.g., a spreadsheet parsing library if already available in the project), returning structured parse errors when the file cannot be read."
-        },
-        {
-          "path": "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
-          "operation": "create",
-          "description": "Add validation helpers for imported trade rows: enforce presence of required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id); validate per-row required values and basic type coercion (quantity bigint, price number) and return an English error summary including 1-based row numbers for invalid rows."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
           "operation": "modify",
-          "description": "Add React Query hooks for trade import and retrieval using the existing actor capabilities in the generated backend interface (importTrades for persistence and getAllTrades / getTradesByClientCode for reading), including query invalidation on successful import so UI refreshes."
-        },
-        {
-          "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
-          "operation": "modify",
-          "description": "Wire the upload UI to the full workflow: on file select, parse + validate; show clear English error banners/summaries when required columns/rows are invalid; on success, call the import mutation and show an English success confirmation with the number of trades imported. Ensure the action remains gated by the existing RBAC UI using PermissionGate (authorization component capability gating). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Update Trade Import UI Import History tab to fetch and display persisted imported trades after upload and after refresh.",
-      "acceptanceCriteria": [
-        "After a successful import, navigating to Import History shows the imported trades fetched from the backend (not placeholder empty state).",
-        "The UI displays at least the required columns for each imported trade in a readable table.",
-        "Refreshing the page does not remove the imported trades from the history view."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add (or extend) a trades listing query hook backed by the actor trade-list capability so the Import History tab can fetch persisted trades; ensure it is enabled only when an actor is available and is invalidated after a successful import."
-        },
-        {
-          "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
-          "operation": "modify",
-          "description": "Replace the Import History placeholder empty state with a table view that reads from the trades query and renders at least the required trade columns; after a successful import, switch the active tab to history and/or show a link/button to view history. Use existing shadcn/ui Table components by composing them (do not edit files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
+          "description": "Replace the hard-coded file input id ('bulk-upload-file-input') with a per-instance unique id (e.g., via React useId or an instance-stable generated id) and update the label htmlFor accordingly. Remove document.getElementById usage for reset; instead, use a local ref to the input so each instance resets its own input reliably when import completes. Verify the component's usage instructions before implementing."
         }
       ]
     }

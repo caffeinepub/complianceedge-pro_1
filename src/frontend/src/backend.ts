@@ -97,6 +97,13 @@ export interface Thread {
     createdAt: Timestamp;
     authorizedUsers: Array<Principal>;
 }
+export interface StatementRow {
+    balance: number;
+    date: Timestamp;
+    description: string;
+    recordedBy: Principal;
+    amount: number;
+}
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
@@ -112,6 +119,16 @@ export interface Trade {
     exchange: string;
     price: number;
 }
+export interface RegulatoryDeadline {
+    id: bigint;
+    status: string;
+    title: string;
+    createdAt: Timestamp;
+    createdBy: Principal;
+    dueDate: Timestamp;
+    description: string;
+    category: string;
+}
 export interface KycDocument {
     pan: string;
     documents: Array<DocumentKey>;
@@ -121,7 +138,6 @@ export interface KycDocument {
     updatedAt: Timestamp;
     address: string;
 }
-export type ClientID = bigint;
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
@@ -131,6 +147,14 @@ export interface DocumentMeta {
     docType: string;
     uploadTime: Timestamp;
     uploadedBy: Principal;
+}
+export interface GeneratedReport {
+    id: bigint;
+    status: string;
+    templateId: string;
+    generatedAt: Timestamp;
+    generatedBy: Principal;
+    parameters: string;
 }
 export type DocumentKey = string;
 export interface AuditEntry {
@@ -146,6 +170,18 @@ export interface MarginSnapshot {
     recordedBy: Principal;
     marginUsed: number;
 }
+export interface ReportTemplate {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+}
+export interface BulkClient {
+    pan: string;
+    documents: Array<DocumentKey>;
+    name: string;
+    address: string;
+}
 export interface BehaviorPattern {
     id: bigint;
     detectedAt: Timestamp;
@@ -153,6 +189,23 @@ export interface BehaviorPattern {
     analyzedBy: Principal;
     patternDescription: string;
 }
+export interface CollateralRecord {
+    clientId: ClientId;
+    marketValue: number;
+    recordedAt: Timestamp;
+    recordedBy: Principal;
+    pledgeDate: Timestamp;
+    quantity: bigint;
+    securityName: string;
+}
+export interface ReconciliationRun {
+    status: string;
+    uploadDate: Timestamp;
+    runId: bigint;
+    rowCount: bigint;
+    uploadedBy: Principal;
+}
+export type ClientId = bigint;
 export interface UserProfile {
     name: string;
     email: string;
@@ -176,29 +229,55 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addDocument(clientId: ClientID, docType: string, blob: ExternalBlob): Promise<void>;
+    addActiveClient(clientId: ClientId): Promise<void>;
+    addDocument(clientId: ClientId, docType: string, blob: ExternalBlob): Promise<void>;
     addMarginSnapshot(available: number, used: number, timestamp: Timestamp): Promise<void>;
+    addRegulatoryDeadline(title: string, description: string, dueDate: Timestamp, category: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    bulkUploadClients(clientsInput: Array<BulkClient>): Promise<Array<ClientId>>;
+    bulkUploadCollateral(collateralInput: Array<CollateralRecord>): Promise<void>;
+    bulkUploadMarginSnapshots(snapshots: Array<MarginSnapshot>): Promise<void>;
+    bulkUploadStatementRows(rowsInput: Array<StatementRow>): Promise<bigint>;
     createBehaviorPattern(user: Principal, description: string): Promise<bigint>;
-    createClient(name: string, pan: string, address: string): Promise<ClientID>;
+    createClient(name: string, pan: string, address: string): Promise<ClientId>;
     createThread(title: string, authorizedUsers: Array<Principal>): Promise<bigint>;
+    generateReport(templateId: string, parameters: string): Promise<bigint>;
+    getActiveClients(): Promise<Array<ClientId>>;
+    getAllClients(): Promise<Array<KycDocument>>;
     getAllTrades(): Promise<Array<Trade>>;
     getAuditEntries(): Promise<Array<AuditEntry>>;
     getBehaviorPattern(patternId: bigint): Promise<BehaviorPattern | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getClient(clientId: ClientID): Promise<KycDocument | null>;
+    getClient(clientId: ClientId): Promise<KycDocument | null>;
+    getCollateralRecords(): Promise<Array<CollateralRecord>>;
+    getDashboardMetrics(): Promise<{
+        reconciliationRunCount: bigint;
+        totalTrades: bigint;
+        latestMarginAvailable: number;
+        pendingDeadlines: bigint;
+        totalClients: bigint;
+        latestMarginUsed: number;
+    }>;
     getDocument(key: DocumentKey): Promise<DocumentMeta | null>;
+    getGeneratedReports(): Promise<Array<GeneratedReport>>;
     getMarginSnapshots(): Promise<Array<MarginSnapshot>>;
+    getReconciliationRun(runId: bigint): Promise<ReconciliationRun | null>;
+    getReconciliationRuns(): Promise<Array<ReconciliationRun>>;
+    getRegulatoryDeadlines(): Promise<Array<RegulatoryDeadline>>;
+    getReportTemplates(): Promise<Array<ReportTemplate>>;
+    getStatementRows(): Promise<Array<StatementRow>>;
     getThread(threadId: bigint): Promise<Thread | null>;
     getTradesByClientCode(client_code: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importTrades(trades: Array<Trade>): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    removeActiveClient(clientId: ClientId): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    updateClient(clientId: ClientID, name: string, pan: string, address: string): Promise<void>;
+    updateClient(clientId: ClientId, name: string, pan: string, address: string): Promise<void>;
+    updateRegulatoryDeadlineStatus(deadlineId: bigint, status: string): Promise<void>;
 }
-import type { BehaviorPattern as _BehaviorPattern, DocumentMeta as _DocumentMeta, ExternalBlob as _ExternalBlob, KycDocument as _KycDocument, Thread as _Thread, Timestamp as _Timestamp, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { BehaviorPattern as _BehaviorPattern, DocumentMeta as _DocumentMeta, ExternalBlob as _ExternalBlob, KycDocument as _KycDocument, ReconciliationRun as _ReconciliationRun, Thread as _Thread, Timestamp as _Timestamp, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -299,7 +378,21 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addDocument(arg0: ClientID, arg1: string, arg2: ExternalBlob): Promise<void> {
+    async addActiveClient(arg0: ClientId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addActiveClient(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addActiveClient(arg0);
+            return result;
+        }
+    }
+    async addDocument(arg0: ClientId, arg1: string, arg2: ExternalBlob): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.addDocument(arg0, arg1, await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg2));
@@ -327,6 +420,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async addRegulatoryDeadline(arg0: string, arg1: string, arg2: Timestamp, arg3: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addRegulatoryDeadline(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addRegulatoryDeadline(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
@@ -338,6 +445,62 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n9(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async bulkUploadClients(arg0: Array<BulkClient>): Promise<Array<ClientId>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkUploadClients(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkUploadClients(arg0);
+            return result;
+        }
+    }
+    async bulkUploadCollateral(arg0: Array<CollateralRecord>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkUploadCollateral(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkUploadCollateral(arg0);
+            return result;
+        }
+    }
+    async bulkUploadMarginSnapshots(arg0: Array<MarginSnapshot>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkUploadMarginSnapshots(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkUploadMarginSnapshots(arg0);
+            return result;
+        }
+    }
+    async bulkUploadStatementRows(arg0: Array<StatementRow>): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkUploadStatementRows(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkUploadStatementRows(arg0);
             return result;
         }
     }
@@ -355,7 +518,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createClient(arg0: string, arg1: string, arg2: string): Promise<ClientID> {
+    async createClient(arg0: string, arg1: string, arg2: string): Promise<ClientId> {
         if (this.processError) {
             try {
                 const result = await this.actor.createClient(arg0, arg1, arg2);
@@ -380,6 +543,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createThread(arg0, arg1);
+            return result;
+        }
+    }
+    async generateReport(arg0: string, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.generateReport(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.generateReport(arg0, arg1);
+            return result;
+        }
+    }
+    async getActiveClients(): Promise<Array<ClientId>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getActiveClients();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getActiveClients();
+            return result;
+        }
+    }
+    async getAllClients(): Promise<Array<KycDocument>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllClients();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllClients();
             return result;
         }
     }
@@ -453,7 +658,7 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n13(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getClient(arg0: ClientID): Promise<KycDocument | null> {
+    async getClient(arg0: ClientId): Promise<KycDocument | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getClient(arg0);
@@ -465,6 +670,41 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getClient(arg0);
             return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCollateralRecords(): Promise<Array<CollateralRecord>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCollateralRecords();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCollateralRecords();
+            return result;
+        }
+    }
+    async getDashboardMetrics(): Promise<{
+        reconciliationRunCount: bigint;
+        totalTrades: bigint;
+        latestMarginAvailable: number;
+        pendingDeadlines: bigint;
+        totalClients: bigint;
+        latestMarginUsed: number;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getDashboardMetrics();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDashboardMetrics();
+            return result;
         }
     }
     async getDocument(arg0: DocumentKey): Promise<DocumentMeta | null> {
@@ -481,6 +721,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getGeneratedReports(): Promise<Array<GeneratedReport>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getGeneratedReports();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getGeneratedReports();
+            return result;
+        }
+    }
     async getMarginSnapshots(): Promise<Array<MarginSnapshot>> {
         if (this.processError) {
             try {
@@ -495,18 +749,88 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getThread(arg0: bigint): Promise<Thread | null> {
+    async getReconciliationRun(arg0: bigint): Promise<ReconciliationRun | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.getThread(arg0);
+                const result = await this.actor.getReconciliationRun(arg0);
                 return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getThread(arg0);
+            const result = await this.actor.getReconciliationRun(arg0);
             return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getReconciliationRuns(): Promise<Array<ReconciliationRun>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getReconciliationRuns();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getReconciliationRuns();
+            return result;
+        }
+    }
+    async getRegulatoryDeadlines(): Promise<Array<RegulatoryDeadline>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRegulatoryDeadlines();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRegulatoryDeadlines();
+            return result;
+        }
+    }
+    async getReportTemplates(): Promise<Array<ReportTemplate>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getReportTemplates();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getReportTemplates();
+            return result;
+        }
+    }
+    async getStatementRows(): Promise<Array<StatementRow>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getStatementRows();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getStatementRows();
+            return result;
+        }
+    }
+    async getThread(arg0: bigint): Promise<Thread | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getThread(arg0);
+                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getThread(arg0);
+            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTradesByClientCode(arg0: string): Promise<Array<Trade>> {
@@ -565,6 +889,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async removeActiveClient(arg0: ClientId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.removeActiveClient(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.removeActiveClient(arg0);
+            return result;
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
@@ -579,7 +917,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateClient(arg0: ClientID, arg1: string, arg2: string, arg3: string): Promise<void> {
+    async updateClient(arg0: ClientId, arg1: string, arg2: string, arg3: string): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateClient(arg0, arg1, arg2, arg3);
@@ -590,6 +928,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateClient(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async updateRegulatoryDeadlineStatus(arg0: bigint, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateRegulatoryDeadlineStatus(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateRegulatoryDeadlineStatus(arg0, arg1);
             return result;
         }
     }
@@ -618,7 +970,10 @@ function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 async function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_DocumentMeta]): Promise<DocumentMeta | null> {
     return value.length === 0 ? null : await from_candid_DocumentMeta_n17(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Thread]): Thread | null {
+function from_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ReconciliationRun]): ReconciliationRun | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Thread]): Thread | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {

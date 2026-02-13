@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-browse-files-control-in-the-trade-import-upload-file-tab-so-it-actually-opens-the-native-file-picker-and-allows-selecting-a-file-csv-xlsx-xls",
-      "featureTitle": "Fix the \"Browse Files\" control in the Trade Import > Upload File tab so it actually opens the native file picker and allows selecting a file (CSV/XLSX/XLS).",
+      "featureId": "feature-on-the-margin-collateral-page-ensure-users-who-can-view-the-page-but-lack-the-manage-margin-capability-can-still-see-the-margin-upload-section-area-with-a-clear-in-place-message-explaining-they-do-not-have-permission-to-upload-and-must-contact-an-admin-to-enable-uploads",
+      "featureTitle": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
       "files": [
-        "frontend/src/pages/data-entry/TradeImportPage.tsx"
+        "frontend/src/components/bulk-upload/BulkUploadSection.tsx",
+        "frontend/src/pages/margin/MarginCollateralPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,18 +18,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-the-upload-import-workflow-for-trade-files-after-a-user-selects-a-supported-file-parse-the-file-on-the-frontend-validate-required-columns-client-code-trade-date-exchange-segment-security-side-quantity-price-order-id-trade-id-and-submit-the-parsed-trades-to-the-backend-for-persistence",
-      "featureTitle": "Implement the upload/import workflow for trade files: after a user selects a supported file, parse the file on the frontend, validate required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id), and submit the parsed trades to the backend for persistence.",
+      "featureId": "feature-remove-dom-id-collisions-in-bulkuploadsection-so-that-multiple-instances-on-the-same-page-margin-snapshots-and-pledged-securities-do-not-share-the-same-file-input-id-ensuring-the-choose-file-control-reliably-opens-the-correct-file-picker",
+      "featureTitle": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/data-entry/TradeImportPage.tsx",
-        "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
-        "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts"
+        "frontend/src/components/bulk-upload/BulkUploadSection.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,28 +38,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-trade-import-ui-to-reflect-persisted-imported-data-by-wiring-the-import-history-tab-or-a-new-section-within-it-to-fetch-and-display-imported-trades-from-the-backend-after-an-upload-completes",
-      "featureTitle": "Update the Trade Import UI to reflect persisted imported data by wiring the \"Import History\" tab (or a new section within it) to fetch and display imported trades from the backend after an upload completes.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/data-entry/TradeImportPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
+        "REQ-2"
       ],
       "confidence": "high"
     }

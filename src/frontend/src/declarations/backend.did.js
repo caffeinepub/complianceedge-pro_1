@@ -19,13 +19,52 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
-export const ClientID = IDL.Nat;
+export const ClientId = IDL.Nat;
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Timestamp = IDL.Int;
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
+});
+export const DocumentKey = IDL.Text;
+export const BulkClient = IDL.Record({
+  'pan' : IDL.Text,
+  'documents' : IDL.Vec(DocumentKey),
+  'name' : IDL.Text,
+  'address' : IDL.Text,
+});
+export const CollateralRecord = IDL.Record({
+  'clientId' : ClientId,
+  'marketValue' : IDL.Float64,
+  'recordedAt' : Timestamp,
+  'recordedBy' : IDL.Principal,
+  'pledgeDate' : Timestamp,
+  'quantity' : IDL.Nat,
+  'securityName' : IDL.Text,
+});
+export const MarginSnapshot = IDL.Record({
+  'snapshotTime' : Timestamp,
+  'date' : Timestamp,
+  'marginAvailable' : IDL.Float64,
+  'recordedBy' : IDL.Principal,
+  'marginUsed' : IDL.Float64,
+});
+export const StatementRow = IDL.Record({
+  'balance' : IDL.Float64,
+  'date' : Timestamp,
+  'description' : IDL.Text,
+  'recordedBy' : IDL.Principal,
+  'amount' : IDL.Float64,
+});
+export const KycDocument = IDL.Record({
+  'pan' : IDL.Text,
+  'documents' : IDL.Vec(DocumentKey),
+  'name' : IDL.Text,
+  'createdAt' : Timestamp,
+  'createdBy' : IDL.Principal,
+  'updatedAt' : Timestamp,
+  'address' : IDL.Text,
 });
 export const Trade = IDL.Record({
   'trade_id' : IDL.Text,
@@ -58,28 +97,42 @@ export const UserProfile = IDL.Record({
   'extendedRole' : IDL.Text,
   'department' : IDL.Text,
 });
-export const DocumentKey = IDL.Text;
-export const KycDocument = IDL.Record({
-  'pan' : IDL.Text,
-  'documents' : IDL.Vec(DocumentKey),
-  'name' : IDL.Text,
-  'createdAt' : Timestamp,
-  'createdBy' : IDL.Principal,
-  'updatedAt' : Timestamp,
-  'address' : IDL.Text,
-});
 export const DocumentMeta = IDL.Record({
   'file' : ExternalBlob,
   'docType' : IDL.Text,
   'uploadTime' : Timestamp,
   'uploadedBy' : IDL.Principal,
 });
-export const MarginSnapshot = IDL.Record({
-  'snapshotTime' : Timestamp,
-  'date' : Timestamp,
-  'marginAvailable' : IDL.Float64,
-  'recordedBy' : IDL.Principal,
-  'marginUsed' : IDL.Float64,
+export const GeneratedReport = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'templateId' : IDL.Text,
+  'generatedAt' : Timestamp,
+  'generatedBy' : IDL.Principal,
+  'parameters' : IDL.Text,
+});
+export const ReconciliationRun = IDL.Record({
+  'status' : IDL.Text,
+  'uploadDate' : Timestamp,
+  'runId' : IDL.Nat,
+  'rowCount' : IDL.Nat,
+  'uploadedBy' : IDL.Principal,
+});
+export const RegulatoryDeadline = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Timestamp,
+  'createdBy' : IDL.Principal,
+  'dueDate' : Timestamp,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+});
+export const ReportTemplate = IDL.Record({
+  'id' : IDL.Text,
+  'name' : IDL.Text,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
 });
 export const Thread = IDL.Record({
   'id' : IDL.Nat,
@@ -117,12 +170,29 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'addDocument' : IDL.Func([ClientID, IDL.Text, ExternalBlob], [], []),
+  'addActiveClient' : IDL.Func([ClientId], [], []),
+  'addDocument' : IDL.Func([ClientId, IDL.Text, ExternalBlob], [], []),
   'addMarginSnapshot' : IDL.Func([IDL.Float64, IDL.Float64, Timestamp], [], []),
+  'addRegulatoryDeadline' : IDL.Func(
+      [IDL.Text, IDL.Text, Timestamp, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'bulkUploadClients' : IDL.Func(
+      [IDL.Vec(BulkClient)],
+      [IDL.Vec(ClientId)],
+      [],
+    ),
+  'bulkUploadCollateral' : IDL.Func([IDL.Vec(CollateralRecord)], [], []),
+  'bulkUploadMarginSnapshots' : IDL.Func([IDL.Vec(MarginSnapshot)], [], []),
+  'bulkUploadStatementRows' : IDL.Func([IDL.Vec(StatementRow)], [IDL.Nat], []),
   'createBehaviorPattern' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
-  'createClient' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ClientID], []),
+  'createClient' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ClientId], []),
   'createThread' : IDL.Func([IDL.Text, IDL.Vec(IDL.Principal)], [IDL.Nat], []),
+  'generateReport' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+  'getActiveClients' : IDL.Func([], [IDL.Vec(ClientId)], ['query']),
+  'getAllClients' : IDL.Func([], [IDL.Vec(KycDocument)], ['query']),
   'getAllTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
   'getAuditEntries' : IDL.Func([], [IDL.Vec(AuditEntry)], ['query']),
   'getBehaviorPattern' : IDL.Func(
@@ -132,9 +202,42 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getClient' : IDL.Func([ClientID], [IDL.Opt(KycDocument)], ['query']),
+  'getClient' : IDL.Func([ClientId], [IDL.Opt(KycDocument)], ['query']),
+  'getCollateralRecords' : IDL.Func([], [IDL.Vec(CollateralRecord)], ['query']),
+  'getDashboardMetrics' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'reconciliationRunCount' : IDL.Nat,
+          'totalTrades' : IDL.Nat,
+          'latestMarginAvailable' : IDL.Float64,
+          'pendingDeadlines' : IDL.Nat,
+          'totalClients' : IDL.Nat,
+          'latestMarginUsed' : IDL.Float64,
+        }),
+      ],
+      ['query'],
+    ),
   'getDocument' : IDL.Func([DocumentKey], [IDL.Opt(DocumentMeta)], ['query']),
+  'getGeneratedReports' : IDL.Func([], [IDL.Vec(GeneratedReport)], ['query']),
   'getMarginSnapshots' : IDL.Func([], [IDL.Vec(MarginSnapshot)], ['query']),
+  'getReconciliationRun' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(ReconciliationRun)],
+      ['query'],
+    ),
+  'getReconciliationRuns' : IDL.Func(
+      [],
+      [IDL.Vec(ReconciliationRun)],
+      ['query'],
+    ),
+  'getRegulatoryDeadlines' : IDL.Func(
+      [],
+      [IDL.Vec(RegulatoryDeadline)],
+      ['query'],
+    ),
+  'getReportTemplates' : IDL.Func([], [IDL.Vec(ReportTemplate)], ['query']),
+  'getStatementRows' : IDL.Func([], [IDL.Vec(StatementRow)], ['query']),
   'getThread' : IDL.Func([IDL.Nat], [IDL.Opt(Thread)], ['query']),
   'getTradesByClientCode' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
   'getUserProfile' : IDL.Func(
@@ -144,8 +247,10 @@ export const idlService = IDL.Service({
     ),
   'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'removeActiveClient' : IDL.Func([ClientId], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'updateClient' : IDL.Func([ClientID, IDL.Text, IDL.Text, IDL.Text], [], []),
+  'updateClient' : IDL.Func([ClientId, IDL.Text, IDL.Text, IDL.Text], [], []),
+  'updateRegulatoryDeadlineStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -162,13 +267,52 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
-  const ClientID = IDL.Nat;
+  const ClientId = IDL.Nat;
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Timestamp = IDL.Int;
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const DocumentKey = IDL.Text;
+  const BulkClient = IDL.Record({
+    'pan' : IDL.Text,
+    'documents' : IDL.Vec(DocumentKey),
+    'name' : IDL.Text,
+    'address' : IDL.Text,
+  });
+  const CollateralRecord = IDL.Record({
+    'clientId' : ClientId,
+    'marketValue' : IDL.Float64,
+    'recordedAt' : Timestamp,
+    'recordedBy' : IDL.Principal,
+    'pledgeDate' : Timestamp,
+    'quantity' : IDL.Nat,
+    'securityName' : IDL.Text,
+  });
+  const MarginSnapshot = IDL.Record({
+    'snapshotTime' : Timestamp,
+    'date' : Timestamp,
+    'marginAvailable' : IDL.Float64,
+    'recordedBy' : IDL.Principal,
+    'marginUsed' : IDL.Float64,
+  });
+  const StatementRow = IDL.Record({
+    'balance' : IDL.Float64,
+    'date' : Timestamp,
+    'description' : IDL.Text,
+    'recordedBy' : IDL.Principal,
+    'amount' : IDL.Float64,
+  });
+  const KycDocument = IDL.Record({
+    'pan' : IDL.Text,
+    'documents' : IDL.Vec(DocumentKey),
+    'name' : IDL.Text,
+    'createdAt' : Timestamp,
+    'createdBy' : IDL.Principal,
+    'updatedAt' : Timestamp,
+    'address' : IDL.Text,
   });
   const Trade = IDL.Record({
     'trade_id' : IDL.Text,
@@ -201,28 +345,42 @@ export const idlFactory = ({ IDL }) => {
     'extendedRole' : IDL.Text,
     'department' : IDL.Text,
   });
-  const DocumentKey = IDL.Text;
-  const KycDocument = IDL.Record({
-    'pan' : IDL.Text,
-    'documents' : IDL.Vec(DocumentKey),
-    'name' : IDL.Text,
-    'createdAt' : Timestamp,
-    'createdBy' : IDL.Principal,
-    'updatedAt' : Timestamp,
-    'address' : IDL.Text,
-  });
   const DocumentMeta = IDL.Record({
     'file' : ExternalBlob,
     'docType' : IDL.Text,
     'uploadTime' : Timestamp,
     'uploadedBy' : IDL.Principal,
   });
-  const MarginSnapshot = IDL.Record({
-    'snapshotTime' : Timestamp,
-    'date' : Timestamp,
-    'marginAvailable' : IDL.Float64,
-    'recordedBy' : IDL.Principal,
-    'marginUsed' : IDL.Float64,
+  const GeneratedReport = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'templateId' : IDL.Text,
+    'generatedAt' : Timestamp,
+    'generatedBy' : IDL.Principal,
+    'parameters' : IDL.Text,
+  });
+  const ReconciliationRun = IDL.Record({
+    'status' : IDL.Text,
+    'uploadDate' : Timestamp,
+    'runId' : IDL.Nat,
+    'rowCount' : IDL.Nat,
+    'uploadedBy' : IDL.Principal,
+  });
+  const RegulatoryDeadline = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Timestamp,
+    'createdBy' : IDL.Principal,
+    'dueDate' : Timestamp,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+  });
+  const ReportTemplate = IDL.Record({
+    'id' : IDL.Text,
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
   });
   const Thread = IDL.Record({
     'id' : IDL.Nat,
@@ -260,24 +418,45 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'addDocument' : IDL.Func([ClientID, IDL.Text, ExternalBlob], [], []),
+    'addActiveClient' : IDL.Func([ClientId], [], []),
+    'addDocument' : IDL.Func([ClientId, IDL.Text, ExternalBlob], [], []),
     'addMarginSnapshot' : IDL.Func(
         [IDL.Float64, IDL.Float64, Timestamp],
         [],
         [],
       ),
+    'addRegulatoryDeadline' : IDL.Func(
+        [IDL.Text, IDL.Text, Timestamp, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'bulkUploadClients' : IDL.Func(
+        [IDL.Vec(BulkClient)],
+        [IDL.Vec(ClientId)],
+        [],
+      ),
+    'bulkUploadCollateral' : IDL.Func([IDL.Vec(CollateralRecord)], [], []),
+    'bulkUploadMarginSnapshots' : IDL.Func([IDL.Vec(MarginSnapshot)], [], []),
+    'bulkUploadStatementRows' : IDL.Func(
+        [IDL.Vec(StatementRow)],
+        [IDL.Nat],
+        [],
+      ),
     'createBehaviorPattern' : IDL.Func(
         [IDL.Principal, IDL.Text],
         [IDL.Nat],
         [],
       ),
-    'createClient' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ClientID], []),
+    'createClient' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ClientId], []),
     'createThread' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Principal)],
         [IDL.Nat],
         [],
       ),
+    'generateReport' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+    'getActiveClients' : IDL.Func([], [IDL.Vec(ClientId)], ['query']),
+    'getAllClients' : IDL.Func([], [IDL.Vec(KycDocument)], ['query']),
     'getAllTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
     'getAuditEntries' : IDL.Func([], [IDL.Vec(AuditEntry)], ['query']),
     'getBehaviorPattern' : IDL.Func(
@@ -287,9 +466,46 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getClient' : IDL.Func([ClientID], [IDL.Opt(KycDocument)], ['query']),
+    'getClient' : IDL.Func([ClientId], [IDL.Opt(KycDocument)], ['query']),
+    'getCollateralRecords' : IDL.Func(
+        [],
+        [IDL.Vec(CollateralRecord)],
+        ['query'],
+      ),
+    'getDashboardMetrics' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'reconciliationRunCount' : IDL.Nat,
+            'totalTrades' : IDL.Nat,
+            'latestMarginAvailable' : IDL.Float64,
+            'pendingDeadlines' : IDL.Nat,
+            'totalClients' : IDL.Nat,
+            'latestMarginUsed' : IDL.Float64,
+          }),
+        ],
+        ['query'],
+      ),
     'getDocument' : IDL.Func([DocumentKey], [IDL.Opt(DocumentMeta)], ['query']),
+    'getGeneratedReports' : IDL.Func([], [IDL.Vec(GeneratedReport)], ['query']),
     'getMarginSnapshots' : IDL.Func([], [IDL.Vec(MarginSnapshot)], ['query']),
+    'getReconciliationRun' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(ReconciliationRun)],
+        ['query'],
+      ),
+    'getReconciliationRuns' : IDL.Func(
+        [],
+        [IDL.Vec(ReconciliationRun)],
+        ['query'],
+      ),
+    'getRegulatoryDeadlines' : IDL.Func(
+        [],
+        [IDL.Vec(RegulatoryDeadline)],
+        ['query'],
+      ),
+    'getReportTemplates' : IDL.Func([], [IDL.Vec(ReportTemplate)], ['query']),
+    'getStatementRows' : IDL.Func([], [IDL.Vec(StatementRow)], ['query']),
     'getThread' : IDL.Func([IDL.Nat], [IDL.Opt(Thread)], ['query']),
     'getTradesByClientCode' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
     'getUserProfile' : IDL.Func(
@@ -299,8 +515,10 @@ export const idlFactory = ({ IDL }) => {
       ),
     'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'removeActiveClient' : IDL.Func([ClientId], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'updateClient' : IDL.Func([ClientID, IDL.Text, IDL.Text, IDL.Text], [], []),
+    'updateClient' : IDL.Func([ClientId, IDL.Text, IDL.Text, IDL.Text], [], []),
+    'updateRegulatoryDeadlineStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   });
 };
 

@@ -11,6 +11,7 @@ import ManualTradeEntryPanel from './components/ManualTradeEntryPanel';
 import { parseTradeFile } from './tradeImport/tradeImportParsing';
 import { validateAndConvertTrades } from './tradeImport/tradeImportValidation';
 import { useImportTrades, useGetAllTrades } from '../../hooks/useQueries';
+import { downloadSampleFile } from '../../utils/sampleDownloads';
 import { toast } from 'sonner';
 
 export default function TradeImportPage() {
@@ -18,6 +19,7 @@ export default function TradeImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const importMutation = useImportTrades();
@@ -40,6 +42,22 @@ export default function TradeImportPage() {
     setValidationErrors([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadSample = async () => {
+    setIsDownloading(true);
+    try {
+      await downloadSampleFile(
+        '/assets/samples/trade-import-sample.csv',
+        'trade-import-sample.csv'
+      );
+      toast.success('Sample file downloaded successfully');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to download sample file';
+      toast.error(message);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -126,11 +144,14 @@ export default function TradeImportPage() {
                       Upload CSV files containing trade data
                     </CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="/assets/samples/trade-import-sample.csv" download>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Sample
-                    </a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleDownloadSample}
+                    disabled={isDownloading}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {isDownloading ? 'Downloading...' : 'Download Sample'}
                   </Button>
                 </div>
               </CardHeader>

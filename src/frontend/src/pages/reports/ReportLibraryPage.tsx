@@ -7,10 +7,22 @@ import { Search, FileText, Calendar } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import EmptyState from '../../components/common/EmptyState';
 import PermissionGate from '../../components/auth/PermissionGate';
+import ReportTemplatesList from '../../components/reports/ReportTemplatesList';
+import { useGetReportTemplates } from '../../hooks/useQueries';
 
 export default function ReportLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { data: templates = [], isLoading } = useGetReportTemplates();
+
+  const filteredTemplates = templates.filter(template => {
+    const query = searchQuery.toLowerCase();
+    return (
+      template.name.toLowerCase().includes(query) ||
+      template.description.toLowerCase().includes(query) ||
+      template.category.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -48,18 +60,26 @@ export default function ReportLibraryPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <EmptyState
-            title="Report Templates Available"
-            description="40+ SEBI/NSE/BSE compliance report templates are ready. Generate reports with validated data and export in multiple formats."
-            action={
-              <PermissionGate capability="generate_reports">
-                <Button onClick={() => navigate({ to: '/reports/wizard' })}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Start Report Generation
-                </Button>
-              </PermissionGate>
-            }
-          />
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
+          ) : templates.length === 0 ? (
+            <EmptyState
+              title="No Report Templates"
+              description="Report templates are not available at this time."
+              showIllustration={false}
+            />
+          ) : filteredTemplates.length === 0 ? (
+            <EmptyState
+              title="No Results Found"
+              description={`No templates match "${searchQuery}". Try a different search term.`}
+              showIllustration={false}
+            />
+          ) : (
+            <ReportTemplatesList 
+              templates={filteredTemplates} 
+              onSelectTemplate={(template) => navigate({ to: '/reports/wizard', search: { templateId: template.id } })}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

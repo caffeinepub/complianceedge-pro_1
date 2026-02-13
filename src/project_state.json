@@ -1,55 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Implement and fix the trade file upload workflow so users can browse/select a file, upload it, and have the uploaded file’s data populate the system.",
+  "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Upload Trade File: 'Browse files' link does not work"
+    "Margin upload button not visible to user (Version 10 / production deployment)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-browse-files-control-in-the-trade-import-upload-file-tab-so-it-actually-opens-the-native-file-picker-and-allows-selecting-a-file-csv-xlsx-xls",
-      "title": "Fix the \"Browse Files\" control in the Trade Import > Upload File tab so it actually opens the native file picker and allows selecting a file (CSV/XLSX/XLS).",
+      "id": "feature-on-the-margin-collateral-page-ensure-users-who-can-view-the-page-but-lack-the-manage-margin-capability-can-still-see-the-margin-upload-section-area-with-a-clear-in-place-message-explaining-they-do-not-have-permission-to-upload-and-must-contact-an-admin-to-enable-uploads",
+      "title": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
       "reqIds": [
-        "REQ-5"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-the-upload-import-workflow-for-trade-files-after-a-user-selects-a-supported-file-parse-the-file-on-the-frontend-validate-required-columns-client-code-trade-date-exchange-segment-security-side-quantity-price-order-id-trade-id-and-submit-the-parsed-trades-to-the-backend-for-persistence",
-      "title": "Implement the upload/import workflow for trade files: after a user selects a supported file, parse the file on the frontend, validate required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id), and submit the parsed trades to the backend for persistence.",
+      "id": "feature-remove-dom-id-collisions-in-bulkuploadsection-so-that-multiple-instances-on-the-same-page-margin-snapshots-and-pledged-securities-do-not-share-the-same-file-input-id-ensuring-the-choose-file-control-reliably-opens-the-correct-file-picker",
+      "title": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
       "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-trade-import-ui-to-reflect-persisted-imported-data-by-wiring-the-import-history-tab-or-a-new-section-within-it-to-fetch-and-display-imported-trades-from-the-backend-after-an-upload-completes",
-      "title": "Update the Trade Import UI to reflect persisted imported data by wiring the \"Import History\" tab (or a new section within it) to fetch and display imported trades from the backend after an upload completes.",
-      "reqIds": [
-        "REQ-8"
+        "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Fix 'Browse files' link in Upload Trade File and ensure uploaded trade file data is parsed/imported to populate the system",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add backend trade storage and APIs so imported trade rows are saved in-canister and can be fetched back by the UI (so imported data is visible/populated inside the system after upload).",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix Trade Import browse/upload and persist imported trade data in system",
+  "new_feature_requests": [],
+  "projectName": "Fix Margin upload button visibility on Margin & Collateral page",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

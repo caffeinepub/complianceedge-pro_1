@@ -1,93 +1,52 @@
 {
   "kind": "build_request",
-  "title": "Fix Trade Import browse/upload and persist imported trade data in system",
-  "priority": "high",
+  "title": "Fix Margin upload button visibility on Margin & Collateral page",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-5",
-      "text": "Fix the \"Browse Files\" control in the Trade Import > Upload File tab so it actually opens the native file picker and allows selecting a file (CSV/XLSX/XLS).",
+      "id": "REQ-1",
+      "text": "On the Margin & Collateral page, ensure users who can view the page but lack the \"manage_margin\" capability can still see the margin upload section area, with a clear in-place message explaining they do not have permission to upload and must contact an admin to enable uploads.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "In upload trade file, browse files link doesnt work. Fix it"
+          "Cant see margin upload button"
         ]
       },
       "acceptanceCriteria": [
-        "On Trade Import page (Upload File tab), clicking \"Browse Files\" opens the OS file picker.",
-        "Selecting a file displays the selected filename in the UI (or otherwise confirms selection).",
-        "The control works in Chrome-based browsers and Safari without requiring drag-and-drop."
+        "When signed in as a role without \"manage_margin\" (e.g., Dealer), the Margin Snapshots tab still displays an upload card area instead of rendering nothing.",
+        "The upload controls (Choose File / Import) are disabled or not actionable for users lacking \"manage_margin\".",
+        "A visible English message is shown (in the page content, not only via toast) indicating the user does not have permission to upload margin/collateral data."
       ]
     },
     {
-      "id": "REQ-6",
-      "text": "Implement the upload/import workflow for trade files: after a user selects a supported file, parse the file on the frontend, validate required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id), and submit the parsed trades to the backend for persistence.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "make sure that once file is uploaded by the user then same populates all data inside the system"
-        ]
-      },
-      "acceptanceCriteria": [
-        "CSV files with the required columns are parsed into trade rows on the frontend.",
-        "If any required column is missing, show a clear English error message and do not submit to the backend.",
-        "If any row has invalid/missing required values, show an English error summary (including row numbers) and do not submit invalid rows.",
-        "On successful import, the UI shows an English success confirmation including number of trades imported."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Add backend trade storage and APIs so imported trade rows are saved in-canister and can be fetched back by the UI (so imported data is visible/populated inside the system after upload).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "once file is uploaded by the user then same populates all data inside the system"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes a shared method to store imported trades (batch insert) and a query method to list trades (at minimum, the trades imported by the caller or all trades based on current access control rules).",
-        "Imported trades persist in backend state and are still returned after a page reload.",
-        "Backend enforces existing auth rules: only authenticated users can import trades; read-only users (Dealer) cannot import trades (consistent with existing write restrictions).",
-        "An audit entry is written for a successful import action including count of imported trades."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Update the Trade Import UI to reflect persisted imported data by wiring the \"Import History\" tab (or a new section within it) to fetch and display imported trades from the backend after an upload completes.",
+      "id": "REQ-2",
+      "text": "Remove DOM id collisions in BulkUploadSection so that multiple instances on the same page (Margin Snapshots and Pledged Securities) do not share the same file input id, ensuring the \"Choose File\" control reliably opens the correct file picker.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "same populates all data inside the system"
+          "Cant see margin upload button"
         ]
       },
       "acceptanceCriteria": [
-        "After a successful import, navigating to Import History shows the imported trades fetched from the backend (not placeholder empty state).",
-        "The UI displays at least the required columns for each imported trade in a readable table.",
-        "Refreshing the page does not remove the imported trades from the history view."
+        "Each BulkUploadSection instance uses a unique file input id (not a hard-coded shared id).",
+        "Clicking \"Choose File\" in the Margin Snapshots tab opens the file picker and selecting a file updates the UI with the selected filename.",
+        "Clicking \"Choose File\" in the Pledged Securities tab opens the file picker and selecting a file updates the UI with the selected filename."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only Shadcn components); compose them instead.",
-    "Do not modify immutable frontend hook files listed in SYSTEM_CONTEXT (useActor/useInternetIdentity/main.tsx, etc.).",
-    "Backend must remain a single Motoko actor in backend/main.mo; add backend methods there.",
-    "Create backend/migration.mo only if needed to preserve existing state on upgrade (conditional migration policy)."
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not edit immutable hook files listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
   ],
   "nonGoals": [
-    "Implementing real-time updates (e.g., WebSockets) for import progress.",
-    "Adding third-party authentication providers (only Internet Identity is supported).",
-    "Building a full reconciliation engine or downstream reporting based on imported trades beyond listing/storing them."
+    "Changing role/capability assignments for business roles (e.g., granting manage_margin to additional roles).",
+    "Adding new backend endpoints or altering backend schemas."
   ],
   "imageRequirements": {
     "required": [],

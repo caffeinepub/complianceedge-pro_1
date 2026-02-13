@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix Trade Import file selection and implement an end-to-end trade import that persists uploaded trade data and shows it in the UI.
+**Goal:** Restore predictable visibility and behavior of the margin upload area on the Margin & Collateral page for users without upload permissions, and fix file-picker issues caused by duplicate DOM ids.
 
 **Planned changes:**
-- Fix the Trade Import > Upload File “Browse Files” control to open the native file picker and confirm the selected filename (works in Chrome-based browsers and Safari).
-- Implement frontend parsing for supported trade files and validate required columns/values; show clear English errors with row numbers when validation fails.
-- Submit validated trade rows to the backend for batch persistence.
-- Add backend APIs to store and list imported trades with existing auth restrictions and write an audit entry for successful imports.
-- Wire the Trade Import “Import History” tab (or a section within it) to fetch and display persisted imported trades in a table, including after page reload.
+- Update the Margin Snapshots tab to always render the upload card/section container, even when the user lacks the `manage_margin` capability.
+- When `manage_margin` is missing, show an in-place English message indicating the user does not have permission to upload margin/collateral data and must contact an admin; ensure upload controls are disabled or not actionable.
+- Remove DOM id collisions in `BulkUploadSection` by generating a unique file input id per instance so multiple sections on the same page work independently (e.g., Margin Snapshots and Pledged Securities).
 
-**User-visible outcome:** Users can select and upload a trade file, see clear validation feedback, get a success confirmation with the number of trades imported, and view the persisted imported trades in Import History even after refreshing.
+**User-visible outcome:** Users who can view Margin & Collateral but cannot manage margin will still see the upload area with a clear permission message, and the “Choose File” control will reliably open the correct file picker in both Margin Snapshots and Pledged Securities.

@@ -1,23 +1,22 @@
-import Map "mo:core/Map";
-import Text "mo:core/Text";
-import List "mo:core/List";
-import Time "mo:core/Time";
-import Array "mo:core/Array";
-import Order "mo:core/Order";
 import Iter "mo:core/Iter";
+import Array "mo:core/Array";
 import Principal "mo:core/Principal";
+import Time "mo:core/Time";
+import Text "mo:core/Text";
+import Order "mo:core/Order";
+import List "mo:core/List";
+import Map "mo:core/Map";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Nat "mo:core/Nat";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   type Timestamp = Int;
   type DocumentKey = Text;
-  type ClientID = Nat;
+  type ClientId = Nat;
 
   // User Roles
   module UserRole {
@@ -37,7 +36,7 @@ actor {
   };
 
   // User Profile with extended role information
-  public type UserProfile = {
+  type UserProfile = {
     name : Text;
     email : Text;
     department : Text;
@@ -63,6 +62,14 @@ actor {
     createdBy : Principal;
   };
 
+  // Just the input type for bulk upload. Accepts fewer fields!
+  type BulkClient = {
+    name : Text;
+    pan : Text;
+    address : Text;
+    documents : [DocumentKey];
+  };
+
   // Margin Snapshot Structure
   type MarginSnapshot = {
     date : Timestamp;
@@ -70,6 +77,35 @@ actor {
     marginUsed : Float;
     snapshotTime : Timestamp;
     recordedBy : Principal;
+  };
+
+  // Collateral Record Structure
+  type CollateralRecord = {
+    clientId : ClientId;
+    securityName : Text;
+    quantity : Nat;
+    pledgeDate : Timestamp;
+    marketValue : Float;
+    recordedBy : Principal;
+    recordedAt : Timestamp;
+  };
+
+  // Statement Row Structure
+  type StatementRow = {
+    date : Timestamp;
+    description : Text;
+    amount : Float;
+    balance : Float;
+    recordedBy : Principal;
+  };
+
+  // Reconciliation Run Structure
+  type ReconciliationRun = {
+    runId : Nat;
+    uploadDate : Timestamp;
+    uploadedBy : Principal;
+    rowCount : Nat;
+    status : Text;
   };
 
   // Interest Calculation Structure
@@ -107,7 +143,7 @@ actor {
     analyzedBy : Principal;
   };
 
-  public type Trade = {
+  type Trade = {
     client_code : Text;
     trade_date : Text;
     exchange : Text;
@@ -120,15 +156,50 @@ actor {
     trade_id : Text;
   };
 
-  let clients = Map.empty<ClientID, KycDocument>();
+  // Regulatory Deadline Structure
+  type RegulatoryDeadline = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    dueDate : Timestamp;
+    category : Text;
+    status : Text;
+    createdBy : Principal;
+    createdAt : Timestamp;
+  };
+
+  // Report Template Structure
+  type ReportTemplate = {
+    id : Text;
+    name : Text;
+    description : Text;
+    category : Text;
+  };
+
+  // Generated Report Structure
+  type GeneratedReport = {
+    id : Nat;
+    templateId : Text;
+    generatedBy : Principal;
+    generatedAt : Timestamp;
+    parameters : Text;
+    status : Text;
+  };
+
+  let clients = Map.empty<ClientId, KycDocument>();
   let documents = Map.empty<DocumentKey, DocumentMeta>();
   let threads = Map.empty<Nat, Thread>();
   let patterns = Map.empty<Nat, BehaviorPattern>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+  let reconciliationRuns = Map.empty<Nat, ReconciliationRun>();
+  let regulatoryDeadlines = Map.empty<Nat, RegulatoryDeadline>();
+  let generatedReports = Map.empty<Nat, GeneratedReport>();
 
   let auditEntries = List.empty<AuditEntry>();
   let marginSnapshots = List.empty<MarginSnapshot>();
+  let collateralRecords = List.empty<CollateralRecord>();
   let interestRecords = List.empty<InterestRecord>();
+  let statementRows = List.empty<StatementRow>();
 
   // New stateful trade storage!
   let tradeMap = Map.empty<Text, [Trade]>(); // Use client_code as key
@@ -136,6 +207,11 @@ actor {
   var nextThreadId = 0;
   var nextPatternId = 0;
   var currentClientId = 0;
+  var nextReconciliationRunId = 0;
+  var nextDeadlineId = 0;
+  var nextReportId = 0;
+
+  let activeClientsList = List.empty<ClientId>();
 
   include MixinStorage();
 
@@ -171,6 +247,19 @@ actor {
     switch (userProfiles.get(caller)) {
       case (?profile) {
         profile.extendedRole == "Accountant" or profile.extendedRole == "Operations Manager" or profile.extendedRole == "Super Admin";
+      };
+      case (null) { false };
+    };
+  };
+
+  // Helper function to check if user can view client data
+  func canViewClientData(caller : Principal) : Bool {
+    if (AccessControl.isAdmin(accessControlState, caller)) {
+      return true;
+    };
+    switch (userProfiles.get(caller)) {
+      case (?profile) {
+        profile.extendedRole != "Dealer";
       };
       case (null) { false };
     };
@@ -213,7 +302,37 @@ actor {
     addAuditEntry(caller, "UPDATE_PROFILE", "User updated their profile");
   };
 
-  // Trade Import Workflow
+  public query ({ caller }) func getActiveClients() : async [ClientId] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get active clients");
+    };
+    activeClientsList.toArray();
+  };
+
+  public shared ({ caller }) func addActiveClient(clientId : ClientId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add active clients");
+    };
+    if (isReadOnlyUser(caller)) {
+      Runtime.trap("Unauthorized: Read-only users cannot add active clients");
+    };
+    activeClientsList.add(clientId);
+    addAuditEntry(caller, "ADD_ACTIVE_CLIENT", "Added client " # clientId.toText() # " to active clients");
+  };
+
+  public shared ({ caller }) func removeActiveClient(clientId : ClientId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can remove active clients");
+    };
+    if (isReadOnlyUser(caller)) {
+      Runtime.trap("Unauthorized: Read-only users cannot remove active clients");
+    };
+
+    activeClientsList.clear();
+    addAuditEntry(caller, "REMOVE_ACTIVE_CLIENT", "Removed client " # clientId.toText() # " from active clients");
+  };
+
+  // Trade Management
   public shared ({ caller }) func importTrades(trades : [Trade]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can import trades");
@@ -234,7 +353,6 @@ actor {
     addAuditEntry(caller, "IMPORT_TRADES", "Imported " # trades.size().toText() # " trades");
   };
 
-  // Fetch all trades for a given client code
   public query ({ caller }) func getTradesByClientCode(client_code : Text) : async [Trade] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can fetch trades");
@@ -246,7 +364,6 @@ actor {
     };
   };
 
-  // Fetch all trades in the system
   public query ({ caller }) func getAllTrades() : async [Trade] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can fetch trades");
@@ -262,7 +379,7 @@ actor {
   };
 
   // Document Management
-  public shared ({ caller }) func addDocument(clientId : ClientID, docType : Text, blob : Storage.ExternalBlob) : async () {
+  public shared ({ caller }) func addDocument(clientId : ClientId, docType : Text, blob : Storage.ExternalBlob) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can add documents");
     };
@@ -284,21 +401,14 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view documents");
     };
-    switch (documents.get(key)) {
-      case (?doc) {
-        // Users can view documents they uploaded or if they are admin
-        if (doc.uploadedBy == caller or AccessControl.isAdmin(accessControlState, caller)) {
-          ?doc;
-        } else {
-          Runtime.trap("Unauthorized: Can only view your own documents or be an admin");
-        };
-      };
-      case (null) { null };
+    if (not canViewClientData(caller)) {
+      Runtime.trap("Unauthorized: Insufficient permissions to view documents");
     };
+    documents.get(key);
   };
 
   // Client Management (KYC)
-  public shared ({ caller }) func createClient(name : Text, pan : Text, address : Text) : async ClientID {
+  public shared ({ caller }) func createClient(name : Text, pan : Text, address : Text) : async ClientId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create clients");
     };
@@ -321,14 +431,32 @@ actor {
     clientId;
   };
 
-  public query ({ caller }) func getClient(clientId : ClientID) : async ?KycDocument {
+  public query ({ caller }) func getClient(clientId : ClientId) : async ?KycDocument {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view clients");
+    };
+    if (not canViewClientData(caller)) {
+      Runtime.trap("Unauthorized: Insufficient permissions to view client data");
     };
     clients.get(clientId);
   };
 
-  public shared ({ caller }) func updateClient(clientId : ClientID, name : Text, pan : Text, address : Text) : async () {
+  public query ({ caller }) func getAllClients() : async [KycDocument] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view all clients");
+    };
+    if (not canViewClientData(caller)) {
+      Runtime.trap("Unauthorized: Insufficient permissions to view client data");
+    };
+
+    var allClients : [KycDocument] = [];
+    for ((id, client) in clients.entries()) {
+      allClients := allClients.concat([client]);
+    };
+    allClients;
+  };
+
+  public shared ({ caller }) func updateClient(clientId : ClientId, name : Text, pan : Text, address : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can update clients");
     };
@@ -351,6 +479,144 @@ actor {
       };
       case (null) { Runtime.trap("Client not found") };
     };
+  };
+
+  // Bulk Upload Features
+  public shared ({ caller }) func bulkUploadClients(clientsInput : [BulkClient]) : async [ClientId] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can bulk upload clients");
+    };
+    if (isReadOnlyUser(caller)) {
+      Runtime.trap("Unauthorized: Read-only users cannot bulk upload clients");
+    };
+
+    let createdClientIds = List.empty<ClientId>();
+
+    for (bulkClient in clientsInput.values()) {
+      let clientId = currentClientId;
+      let kycDocument : KycDocument = {
+        name = bulkClient.name;
+        pan = bulkClient.pan;
+        address = bulkClient.address;
+        documents = bulkClient.documents;
+        createdAt = Time.now();
+        updatedAt = Time.now();
+        createdBy = caller;
+      };
+      clients.add(clientId, kycDocument);
+      currentClientId += 1;
+      createdClientIds.add(clientId);
+    };
+
+    addAuditEntry(caller, "BULK_UPLOAD_CLIENTS", "Bulk uploaded " # clientsInput.size().toText() # " clients");
+    createdClientIds.toArray();
+  };
+
+  public shared ({ caller }) func bulkUploadStatementRows(rowsInput : [StatementRow]) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can bulk upload statement rows");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can bulk upload statement rows");
+    };
+
+    let runId = nextReconciliationRunId;
+    nextReconciliationRunId += 1;
+
+    for (row in rowsInput.values()) {
+      let rowWithTimestamp : StatementRow = {
+        row with
+        recordedBy = caller;
+      };
+      statementRows.add(rowWithTimestamp);
+    };
+
+    let run : ReconciliationRun = {
+      runId;
+      uploadDate = Time.now();
+      uploadedBy = caller;
+      rowCount = rowsInput.size();
+      status = "Completed";
+    };
+    reconciliationRuns.add(runId, run);
+
+    addAuditEntry(caller, "BULK_UPLOAD_STATEMENT_ROWS", "Bulk uploaded " # rowsInput.size().toText() # " statement rows");
+    runId;
+  };
+
+  public shared ({ caller }) func bulkUploadMarginSnapshots(snapshots : [MarginSnapshot]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can bulk upload margin snapshots");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can bulk upload margin snapshots");
+    };
+
+    for (snapshot in snapshots.values()) {
+      let snapshotWithTimestamp : MarginSnapshot = {
+        snapshot with
+        snapshotTime = Time.now();
+        recordedBy = caller;
+      };
+      marginSnapshots.add(snapshotWithTimestamp);
+    };
+
+    addAuditEntry(caller, "BULK_UPLOAD_MARGIN_SNAPSHOTS", "Bulk uploaded " # snapshots.size().toText() # " margin snapshots");
+  };
+
+  public shared ({ caller }) func bulkUploadCollateral(collateralInput : [CollateralRecord]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can bulk upload collateral");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can bulk upload collateral");
+    };
+
+    for (collateral in collateralInput.values()) {
+      let collateralWithTimestamp : CollateralRecord = {
+        collateral with
+        recordedBy = caller;
+        recordedAt = Time.now();
+      };
+      collateralRecords.add(collateralWithTimestamp);
+    };
+
+    addAuditEntry(caller, "BULK_UPLOAD_COLLATERAL", "Bulk uploaded " # collateralInput.size().toText() # " collateral records");
+  };
+
+  public query ({ caller }) func getStatementRows() : async [StatementRow] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view statement rows");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can view statement rows");
+    };
+    statementRows.toArray();
+  };
+
+  public query ({ caller }) func getReconciliationRuns() : async [ReconciliationRun] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view reconciliation runs");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can view reconciliation runs");
+    };
+
+    var runs : [ReconciliationRun] = [];
+    for ((id, run) in reconciliationRuns.entries()) {
+      runs := runs.concat([run]);
+    };
+    runs;
+  };
+
+  public query ({ caller }) func getReconciliationRun(runId : Nat) : async ?ReconciliationRun {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view reconciliation runs");
+    };
+    if (not canManageFinancialData(caller)) {
+      Runtime.trap("Unauthorized: Only authorized financial roles can view reconciliation runs");
+    };
+    reconciliationRuns.get(runId);
   };
 
   // Thread Management
@@ -451,6 +717,178 @@ actor {
     marginSnapshots.toArray();
   };
 
+  public query ({ caller }) func getCollateralRecords() : async [CollateralRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view collateral records");
+    };
+    collateralRecords.toArray();
+  };
+
+  // Dashboard Metrics (All authenticated users can view)
+  public query ({ caller }) func getDashboardMetrics() : async {
+    totalClients : Nat;
+    totalTrades : Nat;
+    latestMarginAvailable : Float;
+    latestMarginUsed : Float;
+    reconciliationRunCount : Nat;
+    pendingDeadlines : Nat;
+  } {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view dashboard metrics");
+    };
+
+    var totalClients = 0;
+    for ((id, client) in clients.entries()) {
+      totalClients += 1;
+    };
+
+    var totalTrades = 0;
+    for ((code, trades) in tradeMap.entries()) {
+      totalTrades += trades.size();
+    };
+
+    var latestMarginAvailable = 0.0;
+    var latestMarginUsed = 0.0;
+    let marginArray = marginSnapshots.toArray();
+    if (marginArray.size() > 0) {
+      let latest = marginArray[marginArray.size() - 1];
+      latestMarginAvailable := latest.marginAvailable;
+      latestMarginUsed := latest.marginUsed;
+    };
+
+    var reconciliationRunCount = 0;
+    for ((id, run) in reconciliationRuns.entries()) {
+      reconciliationRunCount += 1;
+    };
+
+    var pendingDeadlines = 0;
+    let currentTime = Time.now();
+    for ((id, deadline) in regulatoryDeadlines.entries()) {
+      if (deadline.dueDate > currentTime and deadline.status == "Pending") {
+        pendingDeadlines += 1;
+      };
+    };
+
+    {
+      totalClients;
+      totalTrades;
+      latestMarginAvailable;
+      latestMarginUsed;
+      reconciliationRunCount;
+      pendingDeadlines;
+    };
+  };
+
+  // Regulatory Calendar Management
+  public shared ({ caller }) func addRegulatoryDeadline(
+    title : Text,
+    description : Text,
+    dueDate : Timestamp,
+    category : Text
+  ) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add regulatory deadlines");
+    };
+    if (not isComplianceOrAdmin(caller)) {
+      Runtime.trap("Unauthorized: Only compliance officers and admins can add regulatory deadlines");
+    };
+
+    let deadline : RegulatoryDeadline = {
+      id = nextDeadlineId;
+      title;
+      description;
+      dueDate;
+      category;
+      status = "Pending";
+      createdBy = caller;
+      createdAt = Time.now();
+    };
+    regulatoryDeadlines.add(nextDeadlineId, deadline);
+    nextDeadlineId += 1;
+    addAuditEntry(caller, "ADD_REGULATORY_DEADLINE", "Added regulatory deadline: " # title);
+    deadline.id;
+  };
+
+  public query ({ caller }) func getRegulatoryDeadlines() : async [RegulatoryDeadline] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view regulatory deadlines");
+    };
+
+    var deadlines : [RegulatoryDeadline] = [];
+    for ((id, deadline) in regulatoryDeadlines.entries()) {
+      deadlines := deadlines.concat([deadline]);
+    };
+    deadlines;
+  };
+
+  public shared ({ caller }) func updateRegulatoryDeadlineStatus(deadlineId : Nat, status : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update regulatory deadlines");
+    };
+    if (not isComplianceOrAdmin(caller)) {
+      Runtime.trap("Unauthorized: Only compliance officers and admins can update regulatory deadlines");
+    };
+
+    switch (regulatoryDeadlines.get(deadlineId)) {
+      case (?deadline) {
+        let updated : RegulatoryDeadline = {
+          deadline with status;
+        };
+        regulatoryDeadlines.add(deadlineId, updated);
+        addAuditEntry(caller, "UPDATE_DEADLINE_STATUS", "Updated deadline " # deadlineId.toText() # " to " # status);
+      };
+      case (null) { Runtime.trap("Deadline not found") };
+    };
+  };
+
+  // Report Management
+  public query ({ caller }) func getReportTemplates() : async [ReportTemplate] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view report templates");
+    };
+
+    [
+      { id = "client-summary"; name = "Client Summary Report"; description = "Summary of all client accounts"; category = "Client" },
+      { id = "trade-activity"; name = "Trade Activity Report"; description = "Detailed trade activity analysis"; category = "Trading" },
+      { id = "margin-analysis"; name = "Margin Analysis Report"; description = "Margin utilization and availability"; category = "Financial" },
+      { id = "compliance-audit"; name = "Compliance Audit Report"; description = "Compliance and regulatory audit trail"; category = "Compliance" },
+      { id = "reconciliation-summary"; name = "Reconciliation Summary"; description = "Statement reconciliation summary"; category = "Financial" }
+    ];
+  };
+
+  public shared ({ caller }) func generateReport(templateId : Text, parameters : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can generate reports");
+    };
+
+    let report : GeneratedReport = {
+      id = nextReportId;
+      templateId;
+      generatedBy = caller;
+      generatedAt = Time.now();
+      parameters;
+      status = "Generated";
+    };
+    generatedReports.add(nextReportId, report);
+    nextReportId += 1;
+    addAuditEntry(caller, "GENERATE_REPORT", "Generated report: " # templateId);
+    report.id;
+  };
+
+  public query ({ caller }) func getGeneratedReports() : async [GeneratedReport] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view generated reports");
+    };
+
+    var reports : [GeneratedReport] = [];
+    for ((id, report) in generatedReports.entries()) {
+      if (report.generatedBy == caller or AccessControl.isAdmin(accessControlState, caller) or isComplianceOrAdmin(caller)) {
+        reports := reports.concat([report]);
+      };
+    };
+    reports;
+  };
+
   // Audit Trail (Admin and Compliance only)
   public query ({ caller }) func getAuditEntries() : async [AuditEntry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -463,7 +901,7 @@ actor {
   };
 
   // Helper Functions
-  func generateDocumentKey(clientId : ClientID, docType : Text) : DocumentKey {
+  func generateDocumentKey(clientId : ClientId, docType : Text) : DocumentKey {
     let timeStamp = Time.now().toText();
     clientId.toText() # "_" # docType # "_" # timeStamp;
   };
