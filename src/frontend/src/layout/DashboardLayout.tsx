@@ -12,8 +12,14 @@ import { LayoutDashboard, FileText, Users, TrendingUp, DollarSign, FileCheck, Ca
 import { cn } from '../lib/utils';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import AdminEmailMismatchBanner from '../components/common/AdminEmailMismatchBanner';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  showAdminMismatchBanner?: boolean;
+}
+
+export default function DashboardLayout({ children, showAdminMismatchBanner = false }: DashboardLayoutProps) {
   const { clear } = useInternetIdentity();
   const { userProfile, refetch } = useCurrentUser();
   const { visibleModules, role } = usePermissions();
@@ -176,6 +182,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto p-6">
+            {showAdminMismatchBanner && userProfile && (
+              <AdminEmailMismatchBanner 
+                savedEmail={userProfile.email}
+                onRefresh={handleRefreshProfile}
+                isRefreshing={isRefreshing}
+              />
+            )}
             {children}
           </div>
         </main>

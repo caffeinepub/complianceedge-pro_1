@@ -4,9 +4,11 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Alert, AlertDescription } from '../ui/alert';
 import { useSaveCallerUserProfile } from '../../hooks/useQueries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { toast } from 'sonner';
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { BusinessRole } from '../../auth/roles';
 
 export default function ProfileSetupDialog() {
@@ -17,6 +19,10 @@ export default function ProfileSetupDialog() {
   
   const saveProfile = useSaveCallerUserProfile();
   const { refetch } = useCurrentUser();
+
+  const ADMIN_EMAIL = 'sanjeev.vohra@gmail.com';
+  const isAdminEmail = email.trim() === ADMIN_EMAIL;
+  const showEmailHint = email.trim() !== '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +81,25 @@ export default function ProfileSetupDialog() {
               placeholder="your.email@company.com"
               required
             />
+            {showEmailHint && (
+              <Alert variant={isAdminEmail ? "default" : "destructive"} className="mt-2">
+                {isAdminEmail ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      This email will receive Super Admin access automatically.
+                    </AlertDescription>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      Super Admin access requires using the admin email: <strong>{ADMIN_EMAIL}</strong>
+                    </AlertDescription>
+                  </>
+                )}
+              </Alert>
+            )}
           </div>
           
           <div className="space-y-2">

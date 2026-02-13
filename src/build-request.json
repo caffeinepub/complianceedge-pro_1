@@ -1,37 +1,58 @@
 {
   "kind": "build_request",
-  "title": "Grant application admin rights to sanjeev.vohra@gmail.com",
-  "priority": "high",
+  "title": "Add admin-email mismatch warning banner for bootstrap admin account",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
-      "target": "both",
+      "text": "Show an obvious, persistent warning in the authenticated UI when the logged-in user's saved profile email does not match the configured bootstrap admin email \"sanjeev.vohra@gmail.com\", explaining that admin rights will not be granted until the profile email is updated and saved.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-7",
+          "msg-8"
         ],
         "quotes": [
-          "Change code such that admin rights are with sanjeev.vohra@gmail.com user"
+          "If you want, I can make the UI show an obvious “You are not using the admin email” warning.",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "When signed in and the user profile email is exactly sanjeev.vohra@gmail.com (ignoring leading/trailing spaces and case), backend checks that depend on `AccessControl.isAdmin(accessControlState, caller)` succeed for that user.",
-        "After saving a profile with email sanjeev.vohra@gmail.com, a subsequent `getCallerUserProfile()` returns a profile whose `extendedRole` is \"Super Admin\" (even if the user attempted to save a different role).",
-        "If a profile for the principal already exists in state with email sanjeev.vohra@gmail.com, the backend still enforces admin privileges and corrects `extendedRole` to \"Super Admin\" without requiring manual intervention.",
-        "In the frontend, the sanjeev.vohra@gmail.com user can access UI areas gated by `PermissionGate capability=\"manage_users\"` (e.g., User Management page) and modules that require admin capabilities, after a refresh or refetch."
+        "When a user is authenticated and `userProfile` is present and `userProfile.email` is not exactly \"sanjeev.vohra@gmail.com\", a prominent warning is displayed within the main app shell (visible regardless of current page).",
+        "The warning text is in English and includes: (a) the saved profile email value, and (b) the expected admin email \"sanjeev.vohra@gmail.com\".",
+        "The warning is not shown when `userProfile.email` is exactly \"sanjeev.vohra@gmail.com\" (case-sensitive match) or when the profile setup dialog is being shown because `userProfile === null`.",
+        "The warning provides a clear next step for the user to fix the issue (e.g., instruct to update and save the Profile email, and use the existing “Refresh Profile” action to re-check)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add an inline hint/validation message in the Profile Setup dialog that alerts the user when they type an email other than \"sanjeev.vohra@gmail.com\" that they will not receive Super Admin access unless they use the admin email.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7",
+          "msg-8"
+        ],
+        "quotes": [
+          "If you want, I can make the UI show an obvious “You are not using the admin email” warning.",
+          "yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In `ProfileSetupDialog`, when the Email field is non-empty and not exactly \"sanjeev.vohra@gmail.com\", display an English hint/warning near the Email field stating that Super Admin access requires using the admin email.",
+        "When the Email field is exactly \"sanjeev.vohra@gmail.com\", the hint/warning is hidden (or replaced with a neutral confirmation message).",
+        "This change does not block saving profiles for non-admin emails; it is informational only."
       ]
     }
   ],
   "constraints": [
-    "Keep all Motoko logic within the single actor in backend/main.mo (no additional backend services).",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (compose instead).",
-    "Use English for any user-facing text."
+    "Do not modify any files under `frontend/src/hooks/useInternetIdentity.ts`/`.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (immutable paths).",
+    "Keep the bootstrap admin email comparison string exactly as \"sanjeev.vohra@gmail.com\" (no normalization or casing changes in the UX logic)."
   ],
   "nonGoals": [
-    "Building a full admin UI for promoting/demoting arbitrary users.",
-    "Adding third-party authentication providers beyond Internet Identity.",
-    "Introducing an external database or additional backend canisters."
+    "Do not change backend authorization logic or the bootstrap admin rule in Motoko.",
+    "Do not add third-party authentication or email integrations.",
+    "Do not implement new admin-management workflows beyond the warning/hint UI."
   ],
   "imageRequirements": {
     "required": [],

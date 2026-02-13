@@ -1,5 +1,5 @@
 {
-  "frontend/src/App.tsx": "Main application component with TanStack Router setup, error boundary wrapper, backend health check integration, 404 handling via NotFoundRoute, and authentication gating with profile setup flow.",
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, error boundary wrapper, backend health check integration, 404 handling via NotFoundRoute, authentication gating with profile setup flow, and admin email mismatch banner logic with proper null checks for type safety.",
   "frontend/src/hooks/useCurrentUser.ts": "React Query hook that fetches the current user's profile from the backend with proper loading state management to prevent profile setup modal flash.",
   "frontend/src/hooks/useQueries.ts": "Centralized React Query hooks including updated useBulkUploadClients that accepts BulkClient[] instead of KycDocument[], with proper cache invalidation and correct ClientId type import.",
   "frontend/src/auth/roles.ts": "Business role definitions and normalization utilities for the seven application roles (Super Admin through External Auditor).",
@@ -7,10 +7,10 @@
   "frontend/src/hooks/usePermissions.ts": "React hook that exposes permission checking functions and visible modules based on the current user's business role, with memoized role and module computation for optimal reactivity.",
   "frontend/src/components/auth/PermissionGate.tsx": "Reusable component that conditionally renders or disables UI elements based on capability checks.",
   "frontend/src/components/auth/SignInScreen.tsx": "Internet Identity sign-in screen with error handling, no-email notice, and safe fallback for missing logo image.",
-  "frontend/src/components/auth/ProfileSetupDialog.tsx": "Modal dialog for first-time user profile setup that explicitly refetches the profile after saving to immediately reflect any backend-enforced role changes (e.g., bootstrap admin).",
+  "frontend/src/components/auth/ProfileSetupDialog.tsx": "Modal dialog for first-time user profile setup that explicitly refetches the profile after saving to immediately reflect any backend-enforced role changes, with inline email validation hints showing whether the entered email will receive Super Admin access.",
   "frontend/src/components/common/BackendErrorBanner.tsx": "Consistent error display component for backend authorization failures and other errors.",
   "frontend/src/components/common/EmptyState.tsx": "Reusable empty state component with optional illustration, title, description, action button, and safe fallback for missing illustration image.",
-  "frontend/src/layout/DashboardLayout.tsx": "High-density dashboard shell with collapsible sidebar navigation, top bar with user menu including manual profile refresh action, role badge, and attribution footer.",
+  "frontend/src/layout/DashboardLayout.tsx": "High-density dashboard shell with collapsible sidebar navigation, top bar with user menu including manual profile refresh action, role badge, attribution footer, and conditional admin email mismatch banner rendering.",
   "frontend/src/pages/OverviewPage.tsx": "Landing dashboard page with data-driven KPI cards from backend metrics, real-time margin utilization, client/trade counts, pending deadlines, and clear zero/empty states when no data exists.",
   "frontend/src/pages/data-entry/TradeImportPage.tsx": "Trade import module with guarded sample CSV download, functional file upload, CSV parsing/validation, import history table, and manual entry panel.",
   "frontend/src/pages/clients/ClientManagementPage.tsx": "Client management page with tabbed layout and bulk upload functionality using correct PermissionGate capability props and ClientUpsertModal onClose prop.",
@@ -65,5 +65,6 @@
   "frontend/src/components/common/AppFatalErrorScreen.tsx": "Reusable fatal error screen component with English copy, error details, troubleshooting tips, and reload button.",
   "frontend/src/components/common/BackendHealthBanner.tsx": "Non-blocking health warning banner with retry action displayed when backend connectivity fails.",
   "frontend/src/hooks/useBackendHealthCheck.ts": "React Query hook that performs backend health checks via backendHealthCheck() with retry logic and manual refetch support.",
-  "frontend/src/pages/NotFoundPage.tsx": "404 Not Found page with clear messaging and link back to dashboard, rendered within authenticated layout when user is signed in."
+  "frontend/src/pages/NotFoundPage.tsx": "404 Not Found page with clear messaging and link back to dashboard, rendered within authenticated layout when user is signed in.",
+  "frontend/src/components/common/AdminEmailMismatchBanner.tsx": "Reusable warning banner component that displays when a user's saved profile email does not match the bootstrap admin email, with clear messaging and a refresh action button."
 }

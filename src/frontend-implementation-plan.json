@@ -1,32 +1,48 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend support for bootstrap admin role visibility and capability gating",
+  "title": "Admin bootstrap email mismatch warning UI",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure the bootstrap admin user (email sanjeev.vohra@gmail.com) reliably sees Super Admin capabilities in the UI after profile save, refresh, or manual refetch, enabling PermissionGate-gated admin modules.",
+      "summary": "Show a persistent warning banner in the authenticated app shell when the saved profile email does not match the configured bootstrap admin email.",
       "acceptanceCriteria": [
-        "When signed in and the user profile email is exactly sanjeev.vohra@gmail.com (ignoring leading/trailing spaces and case), backend checks that depend on `AccessControl.isAdmin(accessControlState, caller)` succeed for that user.",
-        "After saving a profile with email sanjeev.vohra@gmail.com, a subsequent `getCallerUserProfile()` returns a profile whose `extendedRole` is \"Super Admin\" (even if the user attempted to save a different role).",
-        "If a profile for the principal already exists in state with email sanjeev.vohra@gmail.com, the backend still enforces admin privileges and corrects `extendedRole` to \"Super Admin\" without requiring manual intervention.",
-        "In the frontend, the sanjeev.vohra@gmail.com user can access UI areas gated by `PermissionGate capability=\"manage_users\"` (e.g., User Management page) and modules that require admin capabilities, after a refresh or refetch."
+        "When a user is authenticated and `userProfile` is present and `userProfile.email` is not exactly \"sanjeev.vohra@gmail.com\", a prominent warning is displayed within the main app shell (visible regardless of current page).",
+        "The warning text is in English and includes: (a) the saved profile email value, and (b) the expected admin email \"sanjeev.vohra@gmail.com\".",
+        "The warning is not shown when `userProfile.email` is exactly \"sanjeev.vohra@gmail.com\" (case-sensitive match) or when the profile setup dialog is being shown because `userProfile === null`.",
+        "The warning provides a clear next step for the user to fix the issue (e.g., instruct to update and save the Profile email, and use the existing “Refresh Profile” action to re-check)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/common/AdminEmailMismatchBanner.tsx",
+          "operation": "create",
+          "description": "Add a prominent, reusable warning banner component that renders only when given a non-admin saved profile email, and includes English messaging with the saved email value and the expected admin email \"sanjeev.vohra@gmail.com\" plus next-step guidance (update + save Profile email, then use existing “Refresh Profile” action). Use existing shadcn-ui Alert/Button primitives for consistent styling (do not modify `frontend/src/components/ui/*`). Verify the component's usage instructions before implementing. (Authorization component context: banner is part of the authenticated/profile-driven UI.)"
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the mismatch banner into the authenticated app shell flow by computing whether the banner should be shown from `useCurrentUser()` state, ensuring it is suppressed while `showProfileSetup` is true (`userProfile === null`). Pass any needed flags/data into the layout so the banner is visible regardless of current page. Verify the component's usage instructions before implementing. (Authorization component context: relies on authenticated state + current user profile gating.)"
+        },
+        {
+          "path": "frontend/src/layout/DashboardLayout.tsx",
+          "operation": "modify",
+          "description": "Render the new AdminEmailMismatchBanner in a persistent location within the main app shell (e.g., just below the top bar and above page content) so it remains visible across routes, and ensure it uses the saved profile email from `useCurrentUser()` and the exact comparison string \"sanjeev.vohra@gmail.com\" (case-sensitive, no normalization). Verify the component's usage instructions before implementing. (Authorization component context: display depends on current authenticated user's saved profile.)"
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Add an informational inline hint in Profile Setup dialog warning that non-admin emails will not receive Super Admin access.",
+      "acceptanceCriteria": [
+        "In `ProfileSetupDialog`, when the Email field is non-empty and not exactly \"sanjeev.vohra@gmail.com\", display an English hint/warning near the Email field stating that Super Admin access requires using the admin email.",
+        "When the Email field is exactly \"sanjeev.vohra@gmail.com\", the hint/warning is hidden (or replaced with a neutral confirmation message).",
+        "This change does not block saving profiles for non-admin emails; it is informational only."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
           "operation": "modify",
-          "description": "After saving the caller profile, explicitly refetch/refresh the current user profile query so any backend-enforced override to extendedRole (e.g., forcing \"Super Admin\" for the bootstrap admin email) is reflected immediately and the dialog closes without requiring a full page reload. Keep user-facing text in English. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/layout/DashboardLayout.tsx",
-          "operation": "modify",
-          "description": "Add a user-menu action to refetch or invalidate the current user profile query (and thus recompute capabilities/visible modules) so the bootstrap admin can trigger a manual refresh to pick up server-corrected \"Super Admin\" role and unlock PermissionGate-gated areas like User Management. Use the existing authorization capability system (e.g., PermissionGate + capability mapping) and do not modify any files under the forbidden hooks/UI paths. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/usePermissions.ts",
-          "operation": "modify",
-          "description": "Ensure permission derivation updates promptly when the current user profile query changes (refetch/invalidate), so role changes to \"Super Admin\" immediately enable capabilities such as manage_users/manage_config throughout the UI. Keep logic composed around existing role normalization and capability mapping. Verify the component's usage instructions before implementing."
+          "description": "Add inline, informational email hint/validation messaging near the Email input: when `email` is non-empty and not exactly \"sanjeev.vohra@gmail.com\", show a warning that Super Admin access requires using the admin email; when it matches exactly, hide the warning or show a neutral confirmation. Ensure this remains informational only and does not block submission. Verify the component's usage instructions before implementing. (Authorization component context: aligns profile setup UX with bootstrap admin email rule and role-based access behavior.)"
         }
       ]
     }

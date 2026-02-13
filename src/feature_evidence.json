@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-backend-bootstrap-admin-rule-so-that-the-internet-identity-user-whose-saved-profile-email-equals-sanjeev-vohra-gmail-com-is-always-treated-as-an-application-administrator-this-must-a-grant-the-caller-admin-privileges-in-backend-authorization-checks-that-rely-on-accesscontrol-isadmin-and-b-ensure-the-stored-userprofile-extendedrole-for-that-principal-is-set-to-super-admin-so-the-frontend-capability-system-e-g-manage-users-manage-config-is-enabled-for-that-user",
-      "featureTitle": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
+      "featureId": "feature-show-an-obvious-persistent-warning-in-the-authenticated-ui-when-the-logged-in-user-s-saved-profile-email-does-not-match-the-configured-bootstrap-admin-email-sanjeev-vohra-gmail-com-explaining-that-admin-rights-will-not-be-granted-until-the-profile-email-is-updated-and-saved",
+      "featureTitle": "Show an obvious, persistent warning in the authenticated UI when the logged-in user's saved profile email does not match the configured bootstrap admin email \"sanjeev.vohra@gmail.com\", explaining that admin rights will not be granted until the profile email is updated and saved.",
       "files": [
-        "frontend/src/components/auth/ProfileSetupDialog.tsx",
-        "frontend/src/hooks/usePermissions.ts",
+        "frontend/src/App.tsx",
+        "frontend/src/components/common/AdminEmailMismatchBanner.tsx",
         "frontend/src/layout/DashboardLayout.tsx"
       ],
       "components": [
@@ -20,6 +20,26 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-inline-hint-validation-message-in-the-profile-setup-dialog-that-alerts-the-user-when-they-type-an-email-other-than-sanjeev-vohra-gmail-com-that-they-will-not-receive-super-admin-access-unless-they-use-the-admin-email",
+      "featureTitle": "Add an inline hint/validation message in the Profile Setup dialog that alerts the user when they type an email other than \"sanjeev.vohra@gmail.com\" that they will not receive Super Admin access unless they use the admin email.",
+      "files": [
+        "frontend/src/components/auth/ProfileSetupDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
       ],
       "confidence": "high"
     }

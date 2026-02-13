@@ -34,6 +34,13 @@ function RootComponent() {
   
   const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  
+  // Compute whether to show admin email mismatch banner
+  const showAdminMismatchBanner = isAuthenticated && 
+    !showProfileSetup && 
+    userProfile !== null && 
+    userProfile !== undefined &&
+    userProfile.email !== 'sanjeev.vohra@gmail.com';
 
   if (!isAuthenticated) {
     return <SignInScreen />;
@@ -53,7 +60,7 @@ function RootComponent() {
   return (
     <>
       {showProfileSetup && <ProfileSetupDialog />}
-      <DashboardLayout>
+      <DashboardLayout showAdminMismatchBanner={showAdminMismatchBanner}>
         {isError && !isChecking && (
           <BackendHealthBanner onRetry={() => refetch()} isRetrying={isChecking} />
         )}

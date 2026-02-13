@@ -1,18 +1,28 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Role-based web app where a bootstrap admin is determined by saved profile email; compliance officer needs admin rights to upload a margin file.",
+  "architectural_notes": [
+    "Admin/super-admin access is granted based on an exact match between the saved user profile email and the configured bootstrap admin email; if the profile isn't saved/updated to that email, the user is treated as a normal user."
+  ],
   "known_issues": [
-    "Deployer/creator account currently lacks admin permissions; admin role assignment not configured as expected."
+    "Users may not receive admin rights if their profile email was never saved or was saved with a different email than the configured admin email (requires profile update/resave)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-backend-bootstrap-admin-rule-so-that-the-internet-identity-user-whose-saved-profile-email-equals-sanjeev-vohra-gmail-com-is-always-treated-as-an-application-administrator-this-must-a-grant-the-caller-admin-privileges-in-backend-authorization-checks-that-rely-on-accesscontrol-isadmin-and-b-ensure-the-stored-userprofile-extendedrole-for-that-principal-is-set-to-super-admin-so-the-frontend-capability-system-e-g-manage-users-manage-config-is-enabled-for-that-user",
-      "title": "Implement a backend “bootstrap admin” rule so that the Internet Identity user whose saved profile email equals \"sanjeev.vohra@gmail.com\" is always treated as an application administrator. This must (a) grant the caller admin privileges in backend authorization checks that rely on `AccessControl.isAdmin(...)` and (b) ensure the stored `UserProfile.extendedRole` for that principal is set to \"Super Admin\" so the frontend capability system (e.g., `manage_users`, `manage_config`) is enabled for that user.",
+      "id": "feature-show-an-obvious-persistent-warning-in-the-authenticated-ui-when-the-logged-in-user-s-saved-profile-email-does-not-match-the-configured-bootstrap-admin-email-sanjeev-vohra-gmail-com-explaining-that-admin-rights-will-not-be-granted-until-the-profile-email-is-updated-and-saved",
+      "title": "Show an obvious, persistent warning in the authenticated UI when the logged-in user's saved profile email does not match the configured bootstrap admin email \"sanjeev.vohra@gmail.com\", explaining that admin rights will not be granted until the profile email is updated and saved.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-inline-hint-validation-message-in-the-profile-setup-dialog-that-alerts-the-user-when-they-type-an-email-other-than-sanjeev-vohra-gmail-com-that-they-will-not-receive-super-admin-access-unless-they-use-the-admin-email",
+      "title": "Add an inline hint/validation message in the Profile Setup dialog that alerts the user when they type an email other than \"sanjeev.vohra@gmail.com\" that they will not receive Super Admin access unless they use the admin email.",
+      "reqIds": [
+        "REQ-2"
       ],
       "version": 1
     }
@@ -20,12 +30,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Assign/admin-enable account sanjeev.vohra@gmail.com as an administrator for the website",
+      "summary": "Add UI warning/banner when the logged-in user's saved profile email does not match the configured admin email, indicating admin rights will not be granted.",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Grant application admin rights to sanjeev.vohra@gmail.com",
+  "projectName": "Add admin-email mismatch warning banner for bootstrap admin account",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
