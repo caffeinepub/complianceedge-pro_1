@@ -27,6 +27,18 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Trade = IDL.Record({
+  'trade_id' : IDL.Text,
+  'client_code' : IDL.Text,
+  'side' : IDL.Text,
+  'trade_date' : IDL.Text,
+  'security' : IDL.Text,
+  'segment' : IDL.Text,
+  'quantity' : IDL.Nat,
+  'order_id' : IDL.Text,
+  'exchange' : IDL.Text,
+  'price' : IDL.Float64,
+});
 export const AuditEntry = IDL.Record({
   'action' : IDL.Text,
   'entryTime' : Timestamp,
@@ -111,6 +123,7 @@ export const idlService = IDL.Service({
   'createBehaviorPattern' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
   'createClient' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ClientID], []),
   'createThread' : IDL.Func([IDL.Text, IDL.Vec(IDL.Principal)], [IDL.Nat], []),
+  'getAllTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
   'getAuditEntries' : IDL.Func([], [IDL.Vec(AuditEntry)], ['query']),
   'getBehaviorPattern' : IDL.Func(
       [IDL.Nat],
@@ -123,11 +136,13 @@ export const idlService = IDL.Service({
   'getDocument' : IDL.Func([DocumentKey], [IDL.Opt(DocumentMeta)], ['query']),
   'getMarginSnapshots' : IDL.Func([], [IDL.Vec(MarginSnapshot)], ['query']),
   'getThread' : IDL.Func([IDL.Nat], [IDL.Opt(Thread)], ['query']),
+  'getTradesByClientCode' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateClient' : IDL.Func([ClientID, IDL.Text, IDL.Text, IDL.Text], [], []),
@@ -154,6 +169,18 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const Trade = IDL.Record({
+    'trade_id' : IDL.Text,
+    'client_code' : IDL.Text,
+    'side' : IDL.Text,
+    'trade_date' : IDL.Text,
+    'security' : IDL.Text,
+    'segment' : IDL.Text,
+    'quantity' : IDL.Nat,
+    'order_id' : IDL.Text,
+    'exchange' : IDL.Text,
+    'price' : IDL.Float64,
   });
   const AuditEntry = IDL.Record({
     'action' : IDL.Text,
@@ -251,6 +278,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'getAllTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
     'getAuditEntries' : IDL.Func([], [IDL.Vec(AuditEntry)], ['query']),
     'getBehaviorPattern' : IDL.Func(
         [IDL.Nat],
@@ -263,11 +291,13 @@ export const idlFactory = ({ IDL }) => {
     'getDocument' : IDL.Func([DocumentKey], [IDL.Opt(DocumentMeta)], ['query']),
     'getMarginSnapshots' : IDL.Func([], [IDL.Vec(MarginSnapshot)], ['query']),
     'getThread' : IDL.Func([IDL.Nat], [IDL.Opt(Thread)], ['query']),
+    'getTradesByClientCode' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'importTrades' : IDL.Func([IDL.Vec(Trade)], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateClient' : IDL.Func([ClientID, IDL.Text, IDL.Text, IDL.Text], [], []),

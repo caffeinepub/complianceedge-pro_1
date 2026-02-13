@@ -100,6 +100,18 @@ export interface Thread {
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
+export interface Trade {
+    trade_id: string;
+    client_code: string;
+    side: string;
+    trade_date: string;
+    security: string;
+    segment: string;
+    quantity: bigint;
+    order_id: string;
+    exchange: string;
+    price: number;
+}
 export interface KycDocument {
     pan: string;
     documents: Array<DocumentKey>;
@@ -109,18 +121,18 @@ export interface KycDocument {
     updatedAt: Timestamp;
     address: string;
 }
+export type ClientID = bigint;
+export interface _CaffeineStorageCreateCertificateResult {
+    method: string;
+    blob_hash: string;
+}
 export interface DocumentMeta {
     file: ExternalBlob;
     docType: string;
     uploadTime: Timestamp;
     uploadedBy: Principal;
 }
-export interface _CaffeineStorageCreateCertificateResult {
-    method: string;
-    blob_hash: string;
-}
 export type DocumentKey = string;
-export type ClientID = bigint;
 export interface AuditEntry {
     action: string;
     entryTime: Timestamp;
@@ -170,6 +182,7 @@ export interface backendInterface {
     createBehaviorPattern(user: Principal, description: string): Promise<bigint>;
     createClient(name: string, pan: string, address: string): Promise<ClientID>;
     createThread(title: string, authorizedUsers: Array<Principal>): Promise<bigint>;
+    getAllTrades(): Promise<Array<Trade>>;
     getAuditEntries(): Promise<Array<AuditEntry>>;
     getBehaviorPattern(patternId: bigint): Promise<BehaviorPattern | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -178,7 +191,9 @@ export interface backendInterface {
     getDocument(key: DocumentKey): Promise<DocumentMeta | null>;
     getMarginSnapshots(): Promise<Array<MarginSnapshot>>;
     getThread(threadId: bigint): Promise<Thread | null>;
+    getTradesByClientCode(client_code: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    importTrades(trades: Array<Trade>): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateClient(clientId: ClientID, name: string, pan: string, address: string): Promise<void>;
@@ -368,6 +383,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllTrades(): Promise<Array<Trade>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllTrades();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllTrades();
+            return result;
+        }
+    }
     async getAuditEntries(): Promise<Array<AuditEntry>> {
         if (this.processError) {
             try {
@@ -480,6 +509,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getTradesByClientCode(arg0: string): Promise<Array<Trade>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTradesByClientCode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTradesByClientCode(arg0);
+            return result;
+        }
+    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
@@ -492,6 +535,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getUserProfile(arg0);
             return from_candid_opt_n12(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async importTrades(arg0: Array<Trade>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.importTrades(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.importTrades(arg0);
+            return result;
         }
     }
     async isCallerAdmin(): Promise<boolean> {

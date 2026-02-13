@@ -1,105 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Prepare Trade Import page for manual trade entry",
-  "priority": "normal",
+  "title": "Fix Trade Import browse/upload and persist imported trade data in system",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Replace the current Manual Entry tab empty state on the Trade Import page with a functional manual trade entry UI that allows users to input a single trade using the same fields listed in the Upload tab’s “Required columns” hint: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
+      "id": "REQ-5",
+      "text": "Fix the \"Browse Files\" control in the Trade Import > Upload File tab so it actually opens the native file picker and allows selecting a file (CSV/XLSX/XLS).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "In Trade import, prepare the page for manual entry"
+          "In upload trade file, browse files link doesnt work. Fix it"
         ]
       },
       "acceptanceCriteria": [
-        "On `frontend/src/pages/data-entry/TradeImportPage.tsx`, the Manual Entry tab renders a form (not an EmptyState) with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
-        "All user-facing labels, helper text, and button text in the manual entry UI are in English.",
-        "The Manual Entry form layout is responsive and consistent with existing UI patterns (Card, form spacing, Tailwind utilities, shadcn components)."
+        "On Trade Import page (Upload File tab), clicking \"Browse Files\" opens the OS file picker.",
+        "Selecting a file displays the selected filename in the UI (or otherwise confirms selection).",
+        "The control works in Chrome-based browsers and Safari without requiring drag-and-drop."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Add client-side validation and clear error messaging for the manual trade entry form to prevent incomplete/invalid entries before the user can add/save the trade.",
-      "target": "frontend",
+      "id": "REQ-6",
+      "text": "Implement the upload/import workflow for trade files: after a user selects a supported file, parse the file on the frontend, validate required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id), and submit the parsed trades to the backend for persistence.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "In Trade import, prepare the page for manual entry"
+          "make sure that once file is uploaded by the user then same populates all data inside the system"
         ]
       },
       "acceptanceCriteria": [
-        "Attempting to submit/add a manual trade with missing required fields shows inline validation errors and does not proceed.",
-        "Numeric fields (quantity, price) validate as positive numbers and show an inline error when invalid.",
-        "trade_date validates as a date input and shows an inline error when invalid or missing.",
-        "side validates against an explicit allowed set (e.g., Buy/Sell) and shows an inline error when not selected."
+        "CSV files with the required columns are parsed into trade rows on the frontend.",
+        "If any required column is missing, show a clear English error message and do not submit to the backend.",
+        "If any row has invalid/missing required values, show an English error summary (including row numbers) and do not submit invalid rows.",
+        "On successful import, the UI shows an English success confirmation including number of trades imported."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Implement a “prepared for entry” workflow for the Manual Entry tab by letting users add the validated trade to an in-page list (session-only) and manage that list (view rows and remove an entry).",
-      "target": "frontend",
+      "id": "REQ-7",
+      "text": "Add backend trade storage and APIs so imported trade rows are saved in-canister and can be fetched back by the UI (so imported data is visible/populated inside the system after upload).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "In Trade import, prepare the page for manual entry"
+          "once file is uploaded by the user then same populates all data inside the system"
         ]
       },
       "acceptanceCriteria": [
-        "After a successful form submission, the entered trade is added to a list/table shown within the Manual Entry tab and the form is reset to blank/defaults.",
-        "The in-page list/table displays at least the same fields collected by the form.",
-        "Each listed trade entry can be removed from the list via a delete/remove action.",
-        "The list/table state is session-only (no backend persistence required for this change)."
+        "Backend exposes a shared method to store imported trades (batch insert) and a query method to list trades (at minimum, the trades imported by the caller or all trades based on current access control rules).",
+        "Imported trades persist in backend state and are still returned after a page reload.",
+        "Backend enforces existing auth rules: only authenticated users can import trades; read-only users (Dealer) cannot import trades (consistent with existing write restrictions).",
+        "An audit entry is written for a successful import action including count of imported trades."
       ]
     },
     {
-      "id": "REQ-4",
-      "text": "Add a clear, non-blocking UI note in the Manual Entry tab indicating that manual trade entry is currently prepared in the UI and not yet connected to backend persistence (if backend persistence is not implemented as part of this change).",
+      "id": "REQ-8",
+      "text": "Update the Trade Import UI to reflect persisted imported data by wiring the \"Import History\" tab (or a new section within it) to fetch and display imported trades from the backend after an upload completes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "In Trade import, prepare the page for manual entry"
+          "same populates all data inside the system"
         ]
       },
       "acceptanceCriteria": [
-        "The Manual Entry tab includes a concise informational note (English) describing the current behavior (e.g., entries are kept in-page for now).",
-        "The note is visually styled as an informational callout/alert consistent with the app’s design system.",
-        "The note does not block form usage and does not appear on other tabs."
+        "After a successful import, navigating to Import History shows the imported trades fetched from the backend (not placeholder empty state).",
+        "The UI displays at least the required columns for each imported trade in a readable table.",
+        "Refreshing the page does not remove the imported trades from the history view."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (read-only UI component sources must be composed, not edited).",
-    "Do not modify immutable hook entry points listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
-    "Keep changes focused to preparing the Trade Import manual entry experience; do not introduce unrelated modules or flows."
+    "Do not edit files under frontend/src/components/ui (read-only Shadcn components); compose them instead.",
+    "Do not modify immutable frontend hook files listed in SYSTEM_CONTEXT (useActor/useInternetIdentity/main.tsx, etc.).",
+    "Backend must remain a single Motoko actor in backend/main.mo; add backend methods there.",
+    "Create backend/migration.mo only if needed to preserve existing state on upgrade (conditional migration policy)."
   ],
   "nonGoals": [
-    "Implementing backend storage, querying, or audit logging for trades.",
-    "Implementing actual file upload parsing/import processing.",
-    "Implementing real import history backed by persisted records."
+    "Implementing real-time updates (e.g., WebSockets) for import progress.",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Building a full reconciliation engine or downstream reporting based on imported trades beyond listing/storing them."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

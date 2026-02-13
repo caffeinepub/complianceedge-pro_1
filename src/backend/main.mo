@@ -1,17 +1,19 @@
-import Array "mo:core/Array";
+import Map "mo:core/Map";
 import Text "mo:core/Text";
 import List "mo:core/List";
-import Iter "mo:core/Iter";
 import Time "mo:core/Time";
-import Map "mo:core/Map";
+import Array "mo:core/Array";
 import Order "mo:core/Order";
+import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Timestamp = Int;
   type DocumentKey = Text;
@@ -105,6 +107,19 @@ actor {
     analyzedBy : Principal;
   };
 
+  public type Trade = {
+    client_code : Text;
+    trade_date : Text;
+    exchange : Text;
+    segment : Text;
+    security : Text;
+    side : Text;
+    quantity : Nat;
+    price : Float;
+    order_id : Text;
+    trade_id : Text;
+  };
+
   let clients = Map.empty<ClientID, KycDocument>();
   let documents = Map.empty<DocumentKey, DocumentMeta>();
   let threads = Map.empty<Nat, Thread>();
@@ -114,6 +129,9 @@ actor {
   let auditEntries = List.empty<AuditEntry>();
   let marginSnapshots = List.empty<MarginSnapshot>();
   let interestRecords = List.empty<InterestRecord>();
+
+  // New stateful trade storage!
+  let tradeMap = Map.empty<Text, [Trade]>(); // Use client_code as key
 
   var nextThreadId = 0;
   var nextPatternId = 0;
@@ -127,10 +145,8 @@ actor {
   // Helper function to check if user has read-only restriction (Dealer role)
   func isReadOnlyUser(caller : Principal) : Bool {
     switch (userProfiles.get(caller)) {
-      case (?profile) {
-        profile.extendedRole == "Dealer";
-      };
-      case null { false };
+      case (?profile) { profile.extendedRole == "Dealer" };
+      case (null) { false };
     };
   };
 
@@ -143,7 +159,7 @@ actor {
       case (?profile) {
         profile.extendedRole == "Compliance Officer" or profile.extendedRole == "Compliance Head" or profile.extendedRole == "Super Admin";
       };
-      case null { false };
+      case (null) { false };
     };
   };
 
@@ -156,7 +172,7 @@ actor {
       case (?profile) {
         profile.extendedRole == "Accountant" or profile.extendedRole == "Operations Manager" or profile.extendedRole == "Super Admin";
       };
-      case null { false };
+      case (null) { false };
     };
   };
 
@@ -197,6 +213,54 @@ actor {
     addAuditEntry(caller, "UPDATE_PROFILE", "User updated their profile");
   };
 
+  // Trade Import Workflow
+  public shared ({ caller }) func importTrades(trades : [Trade]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can import trades");
+    };
+    if (isReadOnlyUser(caller)) {
+      Runtime.trap("Unauthorized: Read-only users cannot import trades");
+    };
+
+    for (trade in trades.values()) {
+      let existingTrades = switch (tradeMap.get(trade.client_code)) {
+        case (?t) { t };
+        case (null) { [] };
+      };
+
+      tradeMap.add(trade.client_code, existingTrades.concat([trade]));
+    };
+
+    addAuditEntry(caller, "IMPORT_TRADES", "Imported " # trades.size().toText() # " trades");
+  };
+
+  // Fetch all trades for a given client code
+  public query ({ caller }) func getTradesByClientCode(client_code : Text) : async [Trade] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can fetch trades");
+    };
+
+    switch (tradeMap.get(client_code)) {
+      case (?trades) { trades };
+      case (null) { [] };
+    };
+  };
+
+  // Fetch all trades in the system
+  public query ({ caller }) func getAllTrades() : async [Trade] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can fetch trades");
+    };
+
+    var allTrades : [Trade] = [];
+
+    for ((client_code, trades) in tradeMap.entries()) {
+      allTrades := allTrades.concat(trades);
+    };
+
+    allTrades;
+  };
+
   // Document Management
   public shared ({ caller }) func addDocument(clientId : ClientID, docType : Text, blob : Storage.ExternalBlob) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -229,7 +293,7 @@ actor {
           Runtime.trap("Unauthorized: Can only view your own documents or be an admin");
         };
       };
-      case null { null };
+      case (null) { null };
     };
   };
 
@@ -285,9 +349,7 @@ actor {
         clients.add(clientId, updatedClient);
         addAuditEntry(caller, "UPDATE_CLIENT", "Updated client " # clientId.toText());
       };
-      case null {
-        Runtime.trap("Client not found");
-      };
+      case (null) { Runtime.trap("Client not found") };
     };
   };
 
@@ -328,7 +390,7 @@ actor {
           Runtime.trap("Unauthorized: Not authorized to view this thread");
         };
       };
-      case null { null };
+      case (null) { null };
     };
   };
 

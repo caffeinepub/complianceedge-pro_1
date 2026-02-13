@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Prepare the Trade Import page’s Manual Entry tab for entering a single trade via a functional, validated form and managing entries in-session.
+**Goal:** Fix Trade Import file selection and implement an end-to-end trade import that persists uploaded trade data and shows it in the UI.
 
 **Planned changes:**
-- Replace the Manual Entry tab empty state on `frontend/src/pages/data-entry/TradeImportPage.tsx` with a responsive form containing labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.
-- Add client-side validation with clear inline error messages for required fields, date validity (trade_date), positive numeric inputs (quantity, price), and an explicit allowed set for side (e.g., Buy/Sell).
-- Add an in-page, session-only list/table that shows submitted trades (including the collected fields), supports removing entries, and resets the form after successful add.
-- Add a non-blocking informational callout in the Manual Entry tab noting that entries are currently kept in-page and not persisted to the backend.
+- Fix the Trade Import > Upload File “Browse Files” control to open the native file picker and confirm the selected filename (works in Chrome-based browsers and Safari).
+- Implement frontend parsing for supported trade files and validate required columns/values; show clear English errors with row numbers when validation fails.
+- Submit validated trade rows to the backend for batch persistence.
+- Add backend APIs to store and list imported trades with existing auth restrictions and write an audit entry for successful imports.
+- Wire the Trade Import “Import History” tab (or a section within it) to fetch and display persisted imported trades in a table, including after page reload.
 
-**User-visible outcome:** Users can manually enter a trade on the Trade Import Manual Entry tab, get immediate validation feedback, add valid entries to an on-page list, remove entries, and see a note that the workflow is UI-only for now.
+**User-visible outcome:** Users can select and upload a trade file, see clear validation feedback, get a success confirmation with the number of trades imported, and view the persisted imported trades in Import History even after refreshing.

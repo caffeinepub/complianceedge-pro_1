@@ -56,6 +56,18 @@ export interface Thread {
   'authorizedUsers' : Array<Principal>,
 }
 export type Timestamp = bigint;
+export interface Trade {
+  'trade_id' : string,
+  'client_code' : string,
+  'side' : string,
+  'trade_date' : string,
+  'security' : string,
+  'segment' : string,
+  'quantity' : bigint,
+  'order_id' : string,
+  'exchange' : string,
+  'price' : number,
+}
 export interface UserProfile {
   'name' : string,
   'email' : string,
@@ -99,6 +111,7 @@ export interface _SERVICE {
   'createBehaviorPattern' : ActorMethod<[Principal, string], bigint>,
   'createClient' : ActorMethod<[string, string, string], ClientID>,
   'createThread' : ActorMethod<[string, Array<Principal>], bigint>,
+  'getAllTrades' : ActorMethod<[], Array<Trade>>,
   'getAuditEntries' : ActorMethod<[], Array<AuditEntry>>,
   'getBehaviorPattern' : ActorMethod<[bigint], [] | [BehaviorPattern]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -107,7 +120,9 @@ export interface _SERVICE {
   'getDocument' : ActorMethod<[DocumentKey], [] | [DocumentMeta]>,
   'getMarginSnapshots' : ActorMethod<[], Array<MarginSnapshot>>,
   'getThread' : ActorMethod<[bigint], [] | [Thread]>,
+  'getTradesByClientCode' : ActorMethod<[string], Array<Trade>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'importTrades' : ActorMethod<[Array<Trade>], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateClient' : ActorMethod<[ClientID, string, string, string], undefined>,

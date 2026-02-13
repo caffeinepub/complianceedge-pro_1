@@ -1,73 +1,80 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T04:31:09.797Z",
+  "generatedAt": "2026-02-13T04:39:04.150Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 4,
-    "implemented": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Replace the current Manual Entry tab empty state on the Trade Import page with a functional manual trade entry UI that allows users to input a single trade using the same fields listed in the Upload tab’s “Required columns” hint: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
+        "id": "REQ-5",
+        "summary": "Fix the \"Browse Files\" control in the Trade Import > Upload File tab so it actually opens the native file picker and allows selecting a file (CSV/XLSX/XLS).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
           "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
           "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ]
       },
       {
-        "id": "REQ-2",
-        "summary": "Add client-side validation and clear error messaging for the manual trade entry form to prevent incomplete/invalid entries before the user can add/save the trade.",
+        "id": "REQ-6",
+        "summary": "Implement the upload/import workflow for trade files: after a user selects a supported file, parse the file on the frontend, validate required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id), and submit the parsed trades to the backend for persistence.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
+          "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
+          "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
+          "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
+          "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ]
       },
       {
-        "id": "REQ-3",
-        "summary": "Implement a “prepared for entry” workflow for the Manual Entry tab by letting users add the validated trade to an in-page list (session-only) and manage that list (view rows and remove an entry).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
-        ]
+        "id": "REQ-7",
+        "summary": "Add backend trade storage and APIs so imported trade rows are saved in-canister and can be fetched back by the UI (so imported data is visible/populated inside the system after upload).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-4",
-        "summary": "Add a clear, non-blocking UI note in the Manual Entry tab indicating that manual trade entry is currently prepared in the UI and not yet connected to backend persistence (if backend persistence is not implemented as part of this change).",
+        "id": "REQ-8",
+        "summary": "Update the Trade Import UI to reflect persisted imported data by wiring the \"Import History\" tab (or a new section within it) to fetch and display imported trades from the backend after an upload completes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/data-entry/TradeImportPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/data-entry/TradeImportPage.tsx",
-    "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
-    "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
+    "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
+    "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

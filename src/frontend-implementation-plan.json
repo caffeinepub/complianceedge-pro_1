@@ -1,81 +1,74 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Trade Import: Manual trade entry UI (session-only)",
+  "title": "Trade Import: Fix file picker, implement import parsing/validation, and show persisted import history",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Replace Manual Entry empty state with a responsive manual trade entry form collecting the required trade fields.",
+      "id": "REQ-5",
+      "summary": "Make the Trade Import > Upload File 'Browse Files' control open the native file picker and reflect the selected filename.",
       "acceptanceCriteria": [
-        "On `frontend/src/pages/data-entry/TradeImportPage.tsx`, the Manual Entry tab renders a form (not an EmptyState) with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
-        "All user-facing labels, helper text, and button text in the manual entry UI are in English.",
-        "The Manual Entry form layout is responsive and consistent with existing UI patterns (Card, form spacing, Tailwind utilities, shadcn components)."
+        "On Trade Import page (Upload File tab), clicking \"Browse Files\" opens the OS file picker.",
+        "Selecting a file displays the selected filename in the UI (or otherwise confirms selection).",
+        "The control works in Chrome-based browsers and Safari without requiring drag-and-drop."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
+          "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
+          "operation": "modify",
+          "description": "Replace the non-functional Browse Files button with a native <input type=\"file\"> (hidden) wired via ref/click so it reliably opens the OS picker in Chrome/Safari; show selected filename and basic selected-state UI. Use existing shadcn/ui Button for the trigger (do not edit files under frontend/src/components/ui; compose them instead). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement frontend trade file import workflow: parse CSV/XLSX/XLS, validate required columns and row values, and submit valid trades to backend for persistence.",
+      "acceptanceCriteria": [
+        "CSV files with the required columns are parsed into trade rows on the frontend.",
+        "If any required column is missing, show a clear English error message and do not submit to the backend.",
+        "If any row has invalid/missing required values, show an English error summary (including row numbers) and do not submit invalid rows.",
+        "On successful import, the UI shows an English success confirmation including number of trades imported."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
           "operation": "create",
-          "description": "Create a Manual Entry panel component rendering a Card-based form with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id. Use the shadcn-ui component set (e.g., Card, Button, Input, Label, Select) to match existing UI patterns. Verify the component's usage instructions before implementing."
+          "description": "Add a frontend utility to read the selected file via FileReader and parse it into normalized row objects; support CSV and Excel formats (XLSX/XLS) using a safe parsing approach appropriate for the existing toolchain (e.g., a spreadsheet parsing library if already available in the project), returning structured parse errors when the file cannot be read."
+        },
+        {
+          "path": "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
+          "operation": "create",
+          "description": "Add validation helpers for imported trade rows: enforce presence of required columns (client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id); validate per-row required values and basic type coercion (quantity bigint, price number) and return an English error summary including 1-based row numbers for invalid rows."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks for trade import and retrieval using the existing actor capabilities in the generated backend interface (importTrades for persistence and getAllTrades / getTradesByClientCode for reading), including query invalidation on successful import so UI refreshes."
         },
         {
           "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
           "operation": "modify",
-          "description": "Replace the Manual Entry tab EmptyState with the new ManualTradeEntryPanel component and keep layout consistent with the existing tab structure and Tailwind spacing. Use shadcn-ui Tabs/Card composition patterns already present in the file. Verify the component's usage instructions before implementing."
+          "description": "Wire the upload UI to the full workflow: on file select, parse + validate; show clear English error banners/summaries when required columns/rows are invalid; on success, call the import mutation and show an English success confirmation with the number of trades imported. Ensure the action remains gated by the existing RBAC UI using PermissionGate (authorization component capability gating). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Add client-side validation with inline error messages for manual trade entry fields.",
+      "id": "REQ-8",
+      "summary": "Update Trade Import UI Import History tab to fetch and display persisted imported trades after upload and after refresh.",
       "acceptanceCriteria": [
-        "Attempting to submit/add a manual trade with missing required fields shows inline validation errors and does not proceed.",
-        "Numeric fields (quantity, price) validate as positive numbers and show an inline error when invalid.",
-        "trade_date validates as a date input and shows an inline error when invalid or missing.",
-        "side validates against an explicit allowed set (e.g., Buy/Sell) and shows an inline error when not selected."
+        "After a successful import, navigating to Import History shows the imported trades fetched from the backend (not placeholder empty state).",
+        "The UI displays at least the required columns for each imported trade in a readable table.",
+        "Refreshing the page does not remove the imported trades from the history view."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
-          "operation": "create",
-          "description": "Add lightweight validation helpers/types for the manual trade draft: required-field checks, positive-number validation for quantity/price, date validation for trade_date, and allowed-set validation for side (e.g., Buy/Sell). Keep this frontend-only and reusable by the Manual Entry panel."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add (or extend) a trades listing query hook backed by the actor trade-list capability so the Import History tab can fetch persisted trades; ensure it is enabled only when an actor is available and is invalidated after a successful import."
         },
         {
-          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
+          "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
           "operation": "modify",
-          "description": "Wire validation into the form submit flow: block add when invalid, show field-level inline error text under each control, and ensure side uses an explicit allowed set. Use shadcn-ui form primitives (Input/Label/Select) and consistent Tailwind error styling (e.g., text-destructive). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Allow adding validated manual trades to an in-page, session-only list with ability to remove entries.",
-      "acceptanceCriteria": [
-        "After a successful form submission, the entered trade is added to a list/table shown within the Manual Entry tab and the form is reset to blank/defaults.",
-        "The in-page list/table displays at least the same fields collected by the form.",
-        "Each listed trade entry can be removed from the list via a delete/remove action.",
-        "The list/table state is session-only (no backend persistence required for this change)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
-          "operation": "modify",
-          "description": "Implement session-only state for a list of entered trades within the Manual Entry panel, append on successful validation, reset the form after add, and render a responsive table/list showing all captured fields with a per-row remove action (e.g., Button). Prefer existing Tailwind table utilities (e.g., table-dense) and shadcn-ui Buttons for actions. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Show a non-blocking informational note that manual entry is UI-prepared and not persisted to the backend.",
-      "acceptanceCriteria": [
-        "The Manual Entry tab includes a concise informational note (English) describing the current behavior (e.g., entries are kept in-page for now).",
-        "The note is visually styled as an informational callout/alert consistent with the app’s design system.",
-        "The note does not block form usage and does not appear on other tabs."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
-          "operation": "modify",
-          "description": "Add an informational callout at the top of the Manual Entry panel stating entries are stored in-page for the current session and not yet saved to the backend. Use the shadcn-ui Alert component (info/neutral styling) consistent with existing design patterns and ensure it only renders within the Manual Entry tab. Verify the component's usage instructions before implementing."
+          "description": "Replace the Import History placeholder empty state with a table view that reads from the trades query and renders at least the required trade columns; after a successful import, switch the active tab to history and/or show a link/button to view history. Use existing shadcn/ui Table components by composing them (do not edit files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
         }
       ]
     }

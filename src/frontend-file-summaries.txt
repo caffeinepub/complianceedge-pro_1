@@ -1,7 +1,7 @@
 {
   "frontend/src/App.tsx": "Main application component with TanStack Router setup including new /how-to-use route for the platform guide, authentication gating, and profile setup flow.",
   "frontend/src/hooks/useCurrentUser.ts": "React Query hook that fetches the current user's profile from the backend with proper loading state management to prevent profile setup modal flash.",
-  "frontend/src/hooks/useQueries.ts": "Centralized React Query hooks for all backend operations including user profiles, clients, documents, margin snapshots, and audit entries with proper invalidation.",
+  "frontend/src/hooks/useQueries.ts": "Centralized React Query hooks for all backend operations including user profiles, clients, documents, margin snapshots, audit entries, and trade import/retrieval with proper invalidation.",
   "frontend/src/auth/roles.ts": "Business role definitions and normalization utilities for the seven application roles (Super Admin through External Auditor).",
   "frontend/src/auth/permissions.ts": "Centralized capability-based permissions matrix mapping each business role to granular module and action permissions.",
   "frontend/src/hooks/usePermissions.ts": "React hook that exposes permission checking functions and visible modules based on the current user's business role.",
@@ -12,7 +12,7 @@
   "frontend/src/components/common/EmptyState.tsx": "Reusable empty state component with optional illustration, title, description, and action button.",
   "frontend/src/layout/DashboardLayout.tsx": "High-density dashboard shell with collapsible sidebar navigation, top bar with user menu, role badge, and caffeine.ai attribution footer.",
   "frontend/src/pages/OverviewPage.tsx": "Landing dashboard page with prominent \"How to Use This Platform\" guide card at the top, compliance metrics, alerts, and permission-gated quick actions.",
-  "frontend/src/pages/data-entry/TradeImportPage.tsx": "Trade import module with tabbed interface for file upload, manual entry (now with full form), and import history, including download sample button.",
+  "frontend/src/pages/data-entry/TradeImportPage.tsx": "Trade import module with functional file upload (native file picker), CSV parsing/validation, import history table displaying persisted trades, and manual entry panel with proper error handling and loading states.",
   "frontend/src/pages/clients/ClientManagementPage.tsx": "Client management page with \"Download Sample\" button for bulk client upload CSV template and format hints.",
   "frontend/src/components/clients/ClientUpsertModal.tsx": "Modal form for creating/editing clients with PAN validation and required KYC fields.",
   "frontend/src/validation/pan.ts": "PAN format validation utility using regex pattern for Indian PAN cards.",
@@ -38,5 +38,7 @@
   "frontend/public/assets/samples/margin-snapshot-sample.csv": "Sample CSV file for margin snapshots with client code, snapshot ID, margin amounts, shortfall, and exchange.",
   "frontend/src/pages/HowToUseGuidePage.tsx": "Comprehensive platform guide page with structured sections covering getting started, roles, all modules, troubleshooting, and best practices in a scrollable, reader-friendly format.",
   "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx": "Manual trade entry panel with validated form for all trade fields, session-only state management, and a table displaying entered trades with remove functionality.",
-  "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts": "Validation utilities for manual trade entry including type definitions, field validation rules, and helper functions for form state management."
+  "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts": "Validation utilities for manual trade entry including type definitions, field validation rules, and helper functions for form state management.",
+  "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts": "File parsing utilities for trade import supporting CSV format using FileReader API with proper quoted field handling.",
+  "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts": "Validation utilities for imported trade rows including required column checks, type validation, and conversion to Trade objects with detailed error reporting."
 }

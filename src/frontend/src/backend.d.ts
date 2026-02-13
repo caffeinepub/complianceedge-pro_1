@@ -22,6 +22,18 @@ export interface Thread {
     createdAt: Timestamp;
     authorizedUsers: Array<Principal>;
 }
+export interface Trade {
+    trade_id: string;
+    client_code: string;
+    side: string;
+    trade_date: string;
+    security: string;
+    segment: string;
+    quantity: bigint;
+    order_id: string;
+    exchange: string;
+    price: number;
+}
 export interface KycDocument {
     pan: string;
     documents: Array<DocumentKey>;
@@ -31,6 +43,7 @@ export interface KycDocument {
     updatedAt: Timestamp;
     address: string;
 }
+export type ClientID = bigint;
 export interface DocumentMeta {
     file: ExternalBlob;
     docType: string;
@@ -38,7 +51,6 @@ export interface DocumentMeta {
     uploadedBy: Principal;
 }
 export type DocumentKey = string;
-export type ClientID = bigint;
 export interface AuditEntry {
     action: string;
     entryTime: Timestamp;
@@ -77,6 +89,7 @@ export interface backendInterface {
     createBehaviorPattern(user: Principal, description: string): Promise<bigint>;
     createClient(name: string, pan: string, address: string): Promise<ClientID>;
     createThread(title: string, authorizedUsers: Array<Principal>): Promise<bigint>;
+    getAllTrades(): Promise<Array<Trade>>;
     getAuditEntries(): Promise<Array<AuditEntry>>;
     getBehaviorPattern(patternId: bigint): Promise<BehaviorPattern | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -85,7 +98,9 @@ export interface backendInterface {
     getDocument(key: DocumentKey): Promise<DocumentMeta | null>;
     getMarginSnapshots(): Promise<Array<MarginSnapshot>>;
     getThread(threadId: bigint): Promise<Thread | null>;
+    getTradesByClientCode(client_code: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    importTrades(trades: Array<Trade>): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateClient(clientId: ClientID, name: string, pan: string, address: string): Promise<void>;

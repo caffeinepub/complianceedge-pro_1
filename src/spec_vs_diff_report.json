@@ -1,41 +1,90 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T04:31:09.794Z",
-  "summary": "Manual Entry tab was wired to a new ManualTradeEntryPanel with client-side validation utilities and an informational alert. However, due to truncation of the panel file, several acceptance-criteria details (full set of fields and the rendered list/table with remove actions) cannot be confirmed from the provided diff summary. Additionally, the Upload tab gained a “Download Sample” link which was not requested as part of preparing manual entry.",
+  "generatedAt": "2026-02-13T04:39:04.147Z",
+  "summary": "Diff implements a functional file picker trigger, CSV parsing + validation, and UI wiring to import and display trades, and adds backend state/migration scaffolding for trade persistence. However, XLS/XLSX support is not implemented, and key backend acceptance criteria (import/list APIs, auth enforcement, audit logging) are not verifiable from the provided truncated backend diff.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Manual Entry tab renders a form with labeled inputs for all required fields: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
-      "reason": "The new ManualTradeEntryPanel shows labeled inputs for client_code and trade_date, but the remainder of the form (exchange/segment/security/side/quantity/price/order_id/trade_id) is not visible in the truncated diff, so full coverage cannot be verified.",
+      "id": "REQ-5",
+      "requirement": "Browse Files control must allow selecting CSV/XLSX/XLS files via native file picker.",
+      "reason": "Frontend parsing utility explicitly rejects non-CSV files, so XLSX/XLS are not supported as required.",
       "evidence": [
-        "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx (truncated)"
+        "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "After successful submission, add the trade to an in-page list/table that displays at least the same fields, supports removing entries, and resets the form.",
-      "reason": "State and handlers for adding/removing trades exist, and Table components are imported, but the actual rendered list/table UI (rows, displayed columns, and the remove action control) is not visible in the truncated diff, so the UI portion of the workflow cannot be confirmed.",
+      "id": "REQ-6",
+      "requirement": "Support importing supported file types (CSV/XLSX/XLS) after selection, parsing on frontend, then submitting parsed trades to backend.",
+      "reason": "Import workflow appears implemented for CSV only; XLSX/XLS parsing is not present.",
       "evidence": [
-        "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx (truncated)"
+        "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
+        "frontend/src/pages/data-entry/TradeImportPage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Backend exposes a shared method to store imported trades (batch insert) and a query method to list trades.",
+      "reason": "The provided backend/main.mo excerpt shows new Trade type and tradeMap state but does not show any shared import/list methods in the truncated content.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Backend enforces existing auth rules: only authenticated users can import trades; read-only users (Dealer) cannot import trades.",
+      "reason": "A helper isReadOnlyUser is added, but no import method or enforcement point is visible in the truncated backend diff.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "An audit entry is written for a successful import action including count of imported trades.",
+      "reason": "AuditEntry type and auditEntries state exist, but no visible code in the truncated backend diff shows an import action writing an audit entry.",
+      "evidence": [
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/introduced a “Download Sample” button/link in the Upload File tab.",
-      "reason": "The BuildRequest focuses on preparing the Manual Entry experience and does not request adding a sample download link/button in the Upload tab.",
+      "description": "Added a new /how-to-use route and platform guide card.",
+      "reason": "Not requested by BuildRequest (scope is Trade Import upload/import/history only).",
       "evidence": [
-        "frontend/src/pages/data-entry/TradeImportPage.tsx"
+        "frontend-file-summaries.txt (frontend/src/App.tsx, frontend/src/pages/OverviewPage.tsx)"
+      ]
+    },
+    {
+      "description": "Added multiple \"Download Sample\" buttons/templates across Client Management, Margin, Bank Reconciliation pages.",
+      "reason": "Not requested by BuildRequest.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/clients/ClientManagementPage.tsx, frontend/src/pages/margin/MarginCollateralPage.tsx, frontend/src/pages/reconciliation/BankReconciliationPage.tsx)"
+      ]
+    },
+    {
+      "description": "Implemented/expanded Report Library, Report Wizard, and Scheduled Reports pages.",
+      "reason": "Not requested by BuildRequest.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/reports/ReportLibraryPage.tsx, frontend/src/pages/reports/ReportWizardPage.tsx, frontend/src/pages/reports/ScheduledReportsPage.tsx)"
+      ]
+    },
+    {
+      "description": "Added/expanded permissions matrix, roles normalization, and PermissionGate system-wide components.",
+      "reason": "Not requested explicitly for this task (though it may exist already, the diff summary indicates changes/additions beyond Trade Import).",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/auth/roles.ts, frontend/src/auth/permissions.ts, frontend/src/hooks/usePermissions.ts, frontend/src/components/auth/PermissionGate.tsx)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/data-entry/TradeImportPage.tsx",
-    "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
-    "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
+    "frontend/src/pages/data-entry/tradeImport/tradeImportParsing.ts",
+    "frontend/src/pages/data-entry/tradeImport/tradeImportValidation.ts",
     "project_state.json"
   ]
 }

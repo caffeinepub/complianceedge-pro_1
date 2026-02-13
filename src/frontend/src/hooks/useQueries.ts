@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { UserProfile, ClientID, KycDocument, MarginSnapshot, AuditEntry, DocumentKey, DocumentMeta } from '../backend';
+import type { UserProfile, ClientID, KycDocument, MarginSnapshot, AuditEntry, DocumentKey, DocumentMeta, Trade } from '../backend';
 import { ExternalBlob } from '../backend';
 
 export function useGetCallerUserProfile() {
@@ -148,5 +148,47 @@ export function useGetAuditEntries() {
       return actor.getAuditEntries();
     },
     enabled: !!actor && !actorFetching,
+  });
+}
+
+// Trade Import Hooks
+export function useImportTrades() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (trades: Trade[]) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.importTrades(trades);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+    },
+  });
+}
+
+export function useGetAllTrades() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Trade[]>({
+    queryKey: ['trades'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllTrades();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGetTradesByClientCode(clientCode: string | null) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Trade[]>({
+    queryKey: ['trades', clientCode],
+    queryFn: async () => {
+      if (!actor || !clientCode) return [];
+      return actor.getTradesByClientCode(clientCode);
+    },
+    enabled: !!actor && !actorFetching && !!clientCode,
   });
 }
