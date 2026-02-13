@@ -1,158 +1,40 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build ComplianceEdge Pro: a role-based internal compliance data management & SEBI/NSE/BSE report generation SaaS dashboard for stock broker staff, optimized for high data density and audit readiness; proceed explicitly without any email features.",
-  "architectural_notes": [
-    "Email features explicitly excluded (welcome/margin-call/statement emails, email templates, scheduled email reminders, bulk email workflows).",
-    "Design system target: Salesforce Lightning Design System + Zerodha Console; fonts Inter + JetBrains Mono; keyboard-first UX.",
-    "Primary workflow goal: input data once and generate 40+ regulatory reports with zero manual formatting; multi-format export (PDF/Excel/XML).",
-    "Provide user-downloadable sample/template files for each import/upload workflow (CSV + Excel) and surface them contextually in the UI.",
-    "Include an in-app, reader-friendly \"How to use\" guide accessible from the main dashboard."
-  ],
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-implement-internet-identity-sign-in-and-an-application-level-user-system-with-roles-super-admin-compliance-head-officer-accountant-operations-manager-dealer-read-only-and-external-auditor",
-      "title": "Implement Internet Identity sign-in and an application-level user system with roles: Super Admin, Compliance Head/Officer, Accountant, Operations Manager, Dealer (read-only), and External Auditor.",
+      "id": "feature-replace-the-current-manual-entry-tab-empty-state-on-the-trade-import-page-with-a-functional-manual-trade-entry-ui-that-allows-users-to-input-a-single-trade-using-the-same-fields-listed-in-the-upload-tab-s-required-columns-hint-client-code-trade-date-exchange-segment-security-side-quantity-price-order-id-trade-id",
+      "title": "Replace the current Manual Entry tab empty state on the Trade Import page with a functional manual trade entry UI that allows users to input a single trade using the same fields listed in the Upload tab’s “Required columns” hint: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-define-a-granular-permissions-model-capabilities-and-enforce-it-throughout-the-app-for-module-access-and-actions-view-create-edit-approve-export-per-role-including-read-only-restrictions-for-dealer-and-scoped-visibility-for-external-auditor",
-      "title": "Define a granular permissions model (capabilities) and enforce it throughout the app for module access and actions (view/create/edit/approve/export) per role, including read-only restrictions for Dealer and scoped visibility for External Auditor.",
+      "id": "feature-add-client-side-validation-and-clear-error-messaging-for-the-manual-trade-entry-form-to-prevent-incomplete-invalid-entries-before-the-user-can-add-save-the-trade",
+      "title": "Add client-side validation and clear error messaging for the manual trade entry form to prevent incomplete/invalid entries before the user can add/save the trade.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-create-a-high-density-audit-ready-dashboard-shell-navigation-page-layout-filters-and-an-overview-landing-page-that-includes-compliance-health-score-pending-actions-trade-stats-margin-status-summary-regulatory-calendar-widget-alerts-and-quick-actions",
-      "title": "Create a high-density, audit-ready dashboard shell (navigation, page layout, filters) and an Overview landing page that includes: compliance health score, pending actions, trade stats, margin status summary, regulatory calendar widget, alerts, and quick actions.",
+      "id": "feature-implement-a-prepared-for-entry-workflow-for-the-manual-entry-tab-by-letting-users-add-the-validated-trade-to-an-in-page-list-session-only-and-manage-that-list-view-rows-and-remove-an-entry",
+      "title": "Implement a “prepared for entry” workflow for the Manual Entry tab by letting users add the validated trade to an in-page list (session-only) and manage that list (view rows and remove an entry).",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-build-the-data-entry-module-including-a-trade-import-wizard-that-supports-file-import-and-manual-entry-and-optional-api-import-placeholders-column-mapping-validation-categorization-and-post-import-actions-review-commit-rollback",
-      "title": "Build the Data Entry module including a Trade Import wizard that supports: file import and manual entry (and optional API import placeholders), column mapping, validation, categorization, and post-import actions (review, commit, rollback).",
+      "id": "feature-add-a-clear-non-blocking-ui-note-in-the-manual-entry-tab-indicating-that-manual-trade-entry-is-currently-prepared-in-the-ui-and-not-yet-connected-to-backend-persistence-if-backend-persistence-is-not-implemented-as-part-of-this-change",
+      "title": "Add a clear, non-blocking UI note in the Manual Entry tab indicating that manual trade entry is currently prepared in the UI and not yet connected to backend persistence (if backend persistence is not implemented as part of this change).",
       "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-client-management-ucc-master-with-create-edit-ui-modal-required-kyc-fields-validations-including-pan-format-and-document-upload-storage-with-bulk-upload-support",
-      "title": "Implement Client Management (UCC master) with create/edit UI (modal), required KYC fields, validations (including PAN format), and document upload/storage with bulk upload support.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-margin-collateral-module-peak-margin-snapshots-margin-call-workflow-in-app-only-pledged-securities-tracking-and-daily-collateral-reporting-views",
-      "title": "Implement Margin & Collateral module: peak margin snapshots, margin call workflow (in-app only), pledged securities tracking, and daily collateral reporting views.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-bank-reconciliation-module-statement-upload-auto-matching-engine-unmatched-items-review-workflow-and-reconciliation-reporting",
-      "title": "Implement Bank Reconciliation module: statement upload, auto-matching engine, unmatched-items review workflow, and reconciliation reporting.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-report-library-and-a-universal-report-generation-wizard-that-supports-templates-smart-validations-audit-metadata-who-when-parameters-and-export-to-pdf-excel-xml-json-with-no-email-delivery",
-      "title": "Create a Report Library and a universal Report Generation wizard that supports templates, smart validations, audit metadata (who/when/parameters), and export to PDF/Excel/XML/JSON, with no email delivery.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-scheduled-automated-report-generation-hub-with-configurable-run-times-and-in-app-failure-alerts-include-optional-auto-submit-only-where-an-integration-is-explicitly-configured-and-do-not-implement-email-whatsapp-delivery",
-      "title": "Add a Scheduled/Automated report generation hub with configurable run times and in-app failure alerts; include optional auto-submit only where an integration is explicitly configured, and do not implement email/WhatsApp delivery.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-compliance-monitoring-an-interactive-regulatory-calendar-with-reminders-in-app-status-tracking-assignment-to-users-roles-and-filtering-by-date-status-assignee",
-      "title": "Implement Compliance Monitoring: an interactive regulatory calendar with reminders (in-app), status tracking, assignment to users/roles, and filtering by date/status/assignee.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-surveillance-alerts-module-with-rule-based-alert-records-e-g-wash-trading-front-running-aml-investigation-workflow-triage-assign-evidence-notes-resolution-and-an-evidence-viewer",
-      "title": "Implement Surveillance Alerts module with rule-based alert records (e.g., wash trading, front running, AML), investigation workflow (triage, assign, evidence/notes, resolution), and an evidence viewer.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-immutable-audit-trail-log-all-create-update-delete-and-workflow-transitions-with-before-after-snapshots-filtering-and-drill-down-ui-and-export-include-an-optional-verification-ready-archive-mechanism-but-keep-it-within-the-single-backend-canister-constraint",
-      "title": "Implement an immutable Audit Trail: log all create/update/delete and workflow transitions with before/after snapshots, filtering and drill-down UI, and export; include an optional verification-ready archive mechanism but keep it within the single-backend-canister constraint.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-configuration-modules-for-exchange-settings-user-management-and-api-integrations-exchanges-kra-depositories-accounting-explicitly-excluding-any-email-template-configuration-features",
-      "title": "Create Configuration modules for: exchange settings, user management, and API integrations (exchanges, KRA, depositories, accounting), explicitly excluding any email template/configuration features.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-coherent-distinct-visual-theme-for-a-high-density-professional-compliance-dashboard-typography-spacing-color-system-table-styles-forms-status-badges-and-enforce-it-consistently-across-all-pages-do-not-use-blue-purple-as-the-primary-palette",
-      "title": "Apply a coherent, distinct visual theme for a high-density, professional compliance dashboard (typography, spacing, color system, table styles, forms, status badges) and enforce it consistently across all pages; do not use blue/purple as the primary palette.",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-generated-static-image-assets-and-wire-them-into-the-frontend-store-under-frontend-public-assets-generated-for-branding-and-dashboard-polish",
-      "title": "Add generated static image assets and wire them into the frontend (store under frontend/public/assets/generated) for branding and dashboard polish.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-the-provided-sample-template-files-as-static-frontend-assets-so-they-can-be-downloaded-directly-by-users",
-      "title": "Add the provided sample template files as static frontend assets so they can be downloaded directly by users.",
-      "reqIds": [
-        "REQ-16"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-expose-download-sample-file-links-buttons-in-each-relevant-module-screen-so-users-can-easily-download-the-correct-template-format-from-the-place-where-data-is-uploaded-entered",
-      "title": "Expose “Download sample file” links/buttons in each relevant module screen so users can easily download the correct template format from the place where data is uploaded/entered.",
-      "reqIds": [
-        "REQ-17"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-complete-reader-friendly-how-to-use-this-platform-guide-and-make-it-accessible-from-the-dashboard-overview-in-a-prominent-easy-to-read-format",
-      "title": "Create a complete, reader-friendly “How to use this platform” guide and make it accessible from the dashboard (Overview) in a prominent, easy-to-read format.",
-      "reqIds": [
-        "REQ-18"
       ],
       "version": 1
     }
@@ -160,91 +42,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Role-based SaaS dashboard with granular permissions for Super Admin, Compliance Head/Officer, Accountant, Operations Manager, Dealer (read-only), and External Auditor",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Overview landing dashboard with compliance health score, pending actions, trade stats, margin status, regulatory calendar widget, alerts, and quick actions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Data Entry module including Trade Import wizard (API/file/manual), validation/mapping, categorization, and post-import actions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Client Management (UCC master) with add/edit modal, KYC fields & document upload, bulk upload, and validations (PAN/KRA etc.)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Margin & Collateral management dashboards including peak margin snapshots, margin calls workflow, pledged securities, and daily collateral reporting",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Bank reconciliation with statement upload, auto-matching engine, unmatched review workflow, and reconciliation reporting",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Report Library + universal Report Generation wizard with smart validations, templates, audit metadata, and export to PDF/Excel/XML/JSON (no email delivery)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Scheduled/automated report generation hub (run times, auto-submit where integrated) with in-app failure alerts (no email/WhatsApp delivery)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Compliance Monitoring: interactive regulatory calendar with reminders (in-app), status tracking, and assignment",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Surveillance alerts module (wash trading, front running, AML, etc.) with investigation workflow and evidence view",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Audit Trail viewer with immutable logs, filtering, drill-down before/after states, and export (plus optional blockchain-signed archive/verification)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Configuration modules for exchange settings, user management, and API integrations (exchanges, KRA, depositories, accounting) excluding email templates",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Add downloadable sample upload files (CSV/Excel) placed in relevant modules so users can download the correct format templates",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Add a complete, reader-friendly \"How to use this platform\" guide accessible from the dashboard",
+      "summary": "In Trade Import, prepare the page to support manual trade entry",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "ComplianceEdge Pro",
+  "projectName": "Prepare Trade Import page for manual trade entry",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

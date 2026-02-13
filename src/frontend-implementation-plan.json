@@ -1,96 +1,81 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Downloadable sample CSV templates and dashboard-accessible “How to use this platform” guide",
+  "title": "Trade Import: Manual trade entry UI (session-only)",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Add sample CSV templates as static public assets downloadable without backend calls",
+      "id": "REQ-1",
+      "summary": "Replace Manual Entry empty state with a responsive manual trade entry form collecting the required trade fields.",
       "acceptanceCriteria": [
-        "The following files exist under a public static path (e.g., frontend/public/assets/samples/) and are served by the frontend without requiring backend calls: trade-import-sample.csv, bank-reconciliation-sample.csv, client-bulk-upload-sample.csv, margin-snapshot-sample.csv",
-        "Each CSV file content matches the sample formats previously provided (headers + at least two example rows).",
-        "Directly visiting each file URL in the browser downloads/displays the CSV successfully (HTTP 200)."
+        "On `frontend/src/pages/data-entry/TradeImportPage.tsx`, the Manual Entry tab renders a form (not an EmptyState) with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
+        "All user-facing labels, helper text, and button text in the manual entry UI are in English.",
+        "The Manual Entry form layout is responsive and consistent with existing UI patterns (Card, form spacing, Tailwind utilities, shadcn components)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/samples/trade-import-sample.csv",
+          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
           "operation": "create",
-          "description": "Create the Trade Import sample CSV as a static asset with the provided header format and at least two example rows so it can be downloaded directly (no backend capability)."
+          "description": "Create a Manual Entry panel component rendering a Card-based form with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id. Use the shadcn-ui component set (e.g., Card, Button, Input, Label, Select) to match existing UI patterns. Verify the component's usage instructions before implementing."
         },
-        {
-          "path": "frontend/public/assets/samples/bank-reconciliation-sample.csv",
-          "operation": "create",
-          "description": "Create the Bank Reconciliation sample CSV as a static asset with the provided header format and at least two example rows so it can be downloaded directly (no backend capability)."
-        },
-        {
-          "path": "frontend/public/assets/samples/client-bulk-upload-sample.csv",
-          "operation": "create",
-          "description": "Create the Client Bulk Upload sample CSV as a static asset with the provided header format and at least two example rows so it can be downloaded directly (no backend capability)."
-        },
-        {
-          "path": "frontend/public/assets/samples/margin-snapshot-sample.csv",
-          "operation": "create",
-          "description": "Create the Margin Snapshot sample CSV as a static asset with the provided header format and at least two example rows so it can be downloaded directly (no backend capability)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "summary": "Add “Download sample file” links/buttons on each relevant module page pointing to the static CSV assets",
-      "acceptanceCriteria": [
-        "Trade Import page (frontend/src/pages/data-entry/TradeImportPage.tsx) includes a clearly labeled download link/button for the Trade Import sample CSV that points to the static asset URL.",
-        "Bank Reconciliation page (frontend/src/pages/reconciliation/BankReconciliationPage.tsx) includes a clearly labeled download link/button for the Bank Reconciliation sample CSV that points to the static asset URL.",
-        "Client Management page (frontend/src/pages/clients/ClientManagementPage.tsx) includes a clearly labeled download link/button for the Client Bulk Upload sample CSV that points to the static asset URL.",
-        "Margin & Collateral page (frontend/src/pages/margin/MarginCollateralPage.tsx) includes a clearly labeled download link/button for the Margin Snapshot sample CSV that points to the static asset URL.",
-        "All download links use English user-facing text and do not require any special permissions beyond being logged in (i.e., visible to authenticated users who can view the page)."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/pages/data-entry/TradeImportPage.tsx",
           "operation": "modify",
-          "description": "Expose a clearly labeled “Download sample file” UI control near the upload area that links to the static asset at frontend/public/assets/samples/trade-import-sample.csv. Use existing shadcn-ui primitives already used on the page (e.g., Card/Button/Tabs) to keep styling consistent. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/reconciliation/BankReconciliationPage.tsx",
-          "operation": "modify",
-          "description": "Expose a clearly labeled “Download sample file” UI control on the page (not permission-gated beyond being logged in) that links to frontend/public/assets/samples/bank-reconciliation-sample.csv. Use existing shadcn-ui primitives already used on the page (e.g., Card/Button). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/clients/ClientManagementPage.tsx",
-          "operation": "modify",
-          "description": "Expose a clearly labeled “Download sample file” UI control for bulk client upload that links to frontend/public/assets/samples/client-bulk-upload-sample.csv. Place it in a discoverable location (e.g., page header area near primary actions) and keep it visible for authenticated users who can view the page. Use existing shadcn-ui primitives already used on the page (e.g., Button/Card). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/margin/MarginCollateralPage.tsx",
-          "operation": "modify",
-          "description": "Expose a clearly labeled “Download sample file” UI control that links to frontend/public/assets/samples/margin-snapshot-sample.csv, placed near the Margin Snapshots context. Use existing shadcn-ui primitives already used on the page (e.g., Card/Tabs/Button). Verify the component's usage instructions before implementing."
+          "description": "Replace the Manual Entry tab EmptyState with the new ManualTradeEntryPanel component and keep layout consistent with the existing tab structure and Tailwind spacing. Use shadcn-ui Tabs/Card composition patterns already present in the file. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-18",
-      "summary": "Add a reader-friendly “How to use this platform” guide page and link to it prominently from the dashboard overview",
+      "id": "REQ-2",
+      "summary": "Add client-side validation with inline error messages for manual trade entry fields.",
       "acceptanceCriteria": [
-        "A new guide view/page exists that presents a structured, reader-friendly “How to use this platform” guide in English with headings and sections suitable for scanning (e.g., Getting Started, Roles & Permissions, Trade Import, Clients, Margin, Reconciliation, Reports, Calendar, Surveillance, Audit Trail, Configuration, Troubleshooting/FAQ).",
-        "The guide is reachable from the dashboard (frontend/src/pages/OverviewPage.tsx) via a clearly labeled card/section and button/link (e.g., “How to use this platform”).",
-        "Navigation to the guide does not break existing routes and works with the current TanStack Router setup (frontend/src/App.tsx).",
-        "The guide content is readable on both desktop and smaller screens (reasonable typography, spacing, and scroll behavior)."
+        "Attempting to submit/add a manual trade with missing required fields shows inline validation errors and does not proceed.",
+        "Numeric fields (quantity, price) validate as positive numbers and show an inline error when invalid.",
+        "trade_date validates as a date input and shows an inline error when invalid or missing.",
+        "side validates against an explicit allowed set (e.g., Buy/Sell) and shows an inline error when not selected."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/HowToUseGuidePage.tsx",
+          "path": "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts",
           "operation": "create",
-          "description": "Create a dedicated guide page that renders a structured English “How to use this platform” document with scannable headings/sections (Getting Started, Roles & Permissions, Trade Import, Clients, Margin, Reconciliation, Reports, Calendar, Surveillance, Audit Trail, Configuration, Troubleshooting/FAQ) using existing layout patterns and shadcn-ui primitives (e.g., Card) for consistent typography and spacing. Verify the component's usage instructions before implementing."
+          "description": "Add lightweight validation helpers/types for the manual trade draft: required-field checks, positive-number validation for quantity/price, date validation for trade_date, and allowed-set validation for side (e.g., Buy/Sell). Keep this frontend-only and reusable by the Manual Entry panel."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
           "operation": "modify",
-          "description": "Register a new TanStack Router route for the guide page (e.g., a path like /how-to-use) and ensure it renders within the existing authenticated DashboardLayout + Outlet route tree without breaking current routes."
-        },
+          "description": "Wire validation into the form submit flow: block add when invalid, show field-level inline error text under each control, and ensure side uses an explicit allowed set. Use shadcn-ui form primitives (Input/Label/Select) and consistent Tailwind error styling (e.g., text-destructive). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Allow adding validated manual trades to an in-page, session-only list with ability to remove entries.",
+      "acceptanceCriteria": [
+        "After a successful form submission, the entered trade is added to a list/table shown within the Manual Entry tab and the form is reset to blank/defaults.",
+        "The in-page list/table displays at least the same fields collected by the form.",
+        "Each listed trade entry can be removed from the list via a delete/remove action.",
+        "The list/table state is session-only (no backend persistence required for this change)."
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/pages/OverviewPage.tsx",
+          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
           "operation": "modify",
-          "description": "Add a prominent “How to use this platform” card/section on the dashboard overview with a clear button/link that navigates to the new guide route. Use existing shadcn-ui primitives already used on the page (Card/Button) for consistent styling and responsive readability. Verify the component's usage instructions before implementing."
+          "description": "Implement session-only state for a list of entered trades within the Manual Entry panel, append on successful validation, reset the form after add, and render a responsive table/list showing all captured fields with a per-row remove action (e.g., Button). Prefer existing Tailwind table utilities (e.g., table-dense) and shadcn-ui Buttons for actions. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Show a non-blocking informational note that manual entry is UI-prepared and not persisted to the backend.",
+      "acceptanceCriteria": [
+        "The Manual Entry tab includes a concise informational note (English) describing the current behavior (e.g., entries are kept in-page for now).",
+        "The note is visually styled as an informational callout/alert consistent with the app’s design system.",
+        "The note does not block form usage and does not appear on other tabs."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx",
+          "operation": "modify",
+          "description": "Add an informational callout at the top of the Manual Entry panel stating entries are stored in-page for the current session and not yet saved to the backend. Use the shadcn-ui Alert component (info/neutral styling) consistent with existing design patterns and ensure it only renders within the Manual Entry tab. Verify the component's usage instructions before implementing."
         }
       ]
     }

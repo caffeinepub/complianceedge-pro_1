@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Upload, FileText, Edit, Download } from 'lucide-react';
 import EmptyState from '../../components/common/EmptyState';
 import PermissionGate from '../../components/auth/PermissionGate';
+import ManualTradeEntryPanel from './components/ManualTradeEntryPanel';
 
 export default function TradeImportPage() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -71,11 +72,7 @@ export default function TradeImportPage() {
           </TabsContent>
 
           <TabsContent value="manual">
-            <EmptyState
-              title="Manual Trade Entry"
-              description="Manual trade entry form will be available here. Enter trade details one by one."
-              showIllustration={false}
-            />
+            <ManualTradeEntryPanel />
           </TabsContent>
 
           <TabsContent value="history">

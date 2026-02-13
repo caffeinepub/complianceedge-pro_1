@@ -1,78 +1,105 @@
 {
   "kind": "build_request",
-  "title": "Add downloadable sample templates for upload modules and publish an in-app “How to use this platform” guide on the dashboard",
+  "title": "Prepare Trade Import page for manual trade entry",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-16",
-      "text": "Add the provided sample template files as static frontend assets so they can be downloaded directly by users.",
+      "id": "REQ-1",
+      "text": "Replace the current Manual Entry tab empty state on the Trade Import page with a functional manual trade entry UI that allows users to input a single trade using the same fields listed in the Upload tab’s “Required columns” hint: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Place these sample files in their respective places so that users can download them if required."
+          "In Trade import, prepare the page for manual entry"
         ]
       },
       "acceptanceCriteria": [
-        "The following files exist under a public static path (e.g., frontend/public/assets/samples/) and are served by the frontend without requiring backend calls: trade-import-sample.csv, bank-reconciliation-sample.csv, client-bulk-upload-sample.csv, margin-snapshot-sample.csv",
-        "Each CSV file content matches the sample formats previously provided (headers + at least two example rows).",
-        "Directly visiting each file URL in the browser downloads/displays the CSV successfully (HTTP 200)."
+        "On `frontend/src/pages/data-entry/TradeImportPage.tsx`, the Manual Entry tab renders a form (not an EmptyState) with labeled inputs for: client_code, trade_date, exchange, segment, security, side, quantity, price, order_id, trade_id.",
+        "All user-facing labels, helper text, and button text in the manual entry UI are in English.",
+        "The Manual Entry form layout is responsive and consistent with existing UI patterns (Card, form spacing, Tailwind utilities, shadcn components)."
       ]
     },
     {
-      "id": "REQ-17",
-      "text": "Expose “Download sample file” links/buttons in each relevant module screen so users can easily download the correct template format from the place where data is uploaded/entered.",
+      "id": "REQ-2",
+      "text": "Add client-side validation and clear error messaging for the manual trade entry form to prevent incomplete/invalid entries before the user can add/save the trade.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Place these sample files in their respective places so that users can download them if required."
+          "In Trade import, prepare the page for manual entry"
         ]
       },
       "acceptanceCriteria": [
-        "Trade Import page (frontend/src/pages/data-entry/TradeImportPage.tsx) includes a clearly labeled download link/button for the Trade Import sample CSV that points to the static asset URL.",
-        "Bank Reconciliation page (frontend/src/pages/reconciliation/BankReconciliationPage.tsx) includes a clearly labeled download link/button for the Bank Reconciliation sample CSV that points to the static asset URL.",
-        "Client Management page (frontend/src/pages/clients/ClientManagementPage.tsx) includes a clearly labeled download link/button for the Client Bulk Upload sample CSV that points to the static asset URL.",
-        "Margin & Collateral page (frontend/src/pages/margin/MarginCollateralPage.tsx) includes a clearly labeled download link/button for the Margin Snapshot sample CSV that points to the static asset URL.",
-        "All download links use English user-facing text and do not require any special permissions beyond being logged in (i.e., visible to authenticated users who can view the page)."
+        "Attempting to submit/add a manual trade with missing required fields shows inline validation errors and does not proceed.",
+        "Numeric fields (quantity, price) validate as positive numbers and show an inline error when invalid.",
+        "trade_date validates as a date input and shows an inline error when invalid or missing.",
+        "side validates against an explicit allowed set (e.g., Buy/Sell) and shows an inline error when not selected."
       ]
     },
     {
-      "id": "REQ-18",
-      "text": "Create a complete, reader-friendly “How to use this platform” guide and make it accessible from the dashboard (Overview) in a prominent, easy-to-read format.",
+      "id": "REQ-3",
+      "text": "Implement a “prepared for entry” workflow for the Manual Entry tab by letting users add the validated trade to an in-page list (session-only) and manage that list (view rows and remove an entry).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Also on dashboard station the complete How to use this platform guide in a reader freindly format."
+          "In Trade import, prepare the page for manual entry"
         ]
       },
       "acceptanceCriteria": [
-        "A new guide view/page exists that presents a structured, reader-friendly “How to use this platform” guide in English with headings and sections suitable for scanning (e.g., Getting Started, Roles & Permissions, Trade Import, Clients, Margin, Reconciliation, Reports, Calendar, Surveillance, Audit Trail, Configuration, Troubleshooting/FAQ).",
-        "The guide is reachable from the dashboard (frontend/src/pages/OverviewPage.tsx) via a clearly labeled card/section and button/link (e.g., “How to use this platform”).",
-        "Navigation to the guide does not break existing routes and works with the current TanStack Router setup (frontend/src/App.tsx).",
-        "The guide content is readable on both desktop and smaller screens (reasonable typography, spacing, and scroll behavior)."
+        "After a successful form submission, the entered trade is added to a list/table shown within the Manual Entry tab and the form is reset to blank/defaults.",
+        "The in-page list/table displays at least the same fields collected by the form.",
+        "Each listed trade entry can be removed from the list via a delete/remove action.",
+        "The list/table state is session-only (no backend persistence required for this change)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a clear, non-blocking UI note in the Manual Entry tab indicating that manual trade entry is currently prepared in the UI and not yet connected to backend persistence (if backend persistence is not implemented as part of this change).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "In Trade import, prepare the page for manual entry"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Manual Entry tab includes a concise informational note (English) describing the current behavior (e.g., entries are kept in-page for now).",
+        "The note is visually styled as an informational callout/alert consistent with the app’s design system.",
+        "The note does not block form usage and does not appear on other tabs."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose only).",
-    "Keep within the existing single-backend-canister constraint; sample downloads and the guide must be served as frontend static assets/content (no new backend storage required).",
-    "Use English for all user-facing text added by this change."
+    "Do not modify files under `frontend/src/components/ui` (read-only UI component sources must be composed, not edited).",
+    "Do not modify immutable hook entry points listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
+    "Keep changes focused to preparing the Trade Import manual entry experience; do not introduce unrelated modules or flows."
   ],
   "nonGoals": [
-    "Do not implement actual file upload processing, parsing, validation execution, or import workflows beyond adding downloadable templates and guide content.",
-    "Do not add email/WhatsApp delivery or notifications.",
-    "Do not introduce new authentication providers beyond Internet Identity."
+    "Implementing backend storage, querying, or audit logging for trades.",
+    "Implementing actual file upload parsing/import processing.",
+    "Implementing real import history backed by persisted records."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

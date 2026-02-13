@@ -12,7 +12,7 @@
   "frontend/src/components/common/EmptyState.tsx": "Reusable empty state component with optional illustration, title, description, and action button.",
   "frontend/src/layout/DashboardLayout.tsx": "High-density dashboard shell with collapsible sidebar navigation, top bar with user menu, role badge, and caffeine.ai attribution footer.",
   "frontend/src/pages/OverviewPage.tsx": "Landing dashboard page with prominent \"How to Use This Platform\" guide card at the top, compliance metrics, alerts, and permission-gated quick actions.",
-  "frontend/src/pages/data-entry/TradeImportPage.tsx": "Trade import module with tabbed interface and \"Download Sample\" button linking to the static trade import CSV template.",
+  "frontend/src/pages/data-entry/TradeImportPage.tsx": "Trade import module with tabbed interface for file upload, manual entry (now with full form), and import history, including download sample button.",
   "frontend/src/pages/clients/ClientManagementPage.tsx": "Client management page with \"Download Sample\" button for bulk client upload CSV template and format hints.",
   "frontend/src/components/clients/ClientUpsertModal.tsx": "Modal form for creating/editing clients with PAN validation and required KYC fields.",
   "frontend/src/validation/pan.ts": "PAN format validation utility using regex pattern for Indian PAN cards.",
@@ -36,5 +36,7 @@
   "frontend/public/assets/samples/bank-reconciliation-sample.csv": "Sample CSV file for bank reconciliation with date, description, amount, type, and reference columns.",
   "frontend/public/assets/samples/client-bulk-upload-sample.csv": "Sample CSV file for bulk client upload with UCC, name, PAN, mobile, email, and address fields.",
   "frontend/public/assets/samples/margin-snapshot-sample.csv": "Sample CSV file for margin snapshots with client code, snapshot ID, margin amounts, shortfall, and exchange.",
-  "frontend/src/pages/HowToUseGuidePage.tsx": "Comprehensive platform guide page with structured sections covering getting started, roles, all modules, troubleshooting, and best practices in a scrollable, reader-friendly format."
+  "frontend/src/pages/HowToUseGuidePage.tsx": "Comprehensive platform guide page with structured sections covering getting started, roles, all modules, troubleshooting, and best practices in a scrollable, reader-friendly format.",
+  "frontend/src/pages/data-entry/components/ManualTradeEntryPanel.tsx": "Manual trade entry panel with validated form for all trade fields, session-only state management, and a table displaying entered trades with remove functionality.",
+  "frontend/src/pages/data-entry/tradeImport/manualTradeValidation.ts": "Validation utilities for manual trade entry including type definitions, field validation rules, and helper functions for form state management."
 }
